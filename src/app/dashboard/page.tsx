@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
@@ -11,60 +13,68 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // 取得最新用戶資料
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: {
-      _count: {
-        select: { posts: true, comments: true },
+  let user: any = null;
+  let recentTransactions: any[] = [];
+  let dbError: string | null = null;
+
+  try {
+    // 取得最新用戶資料
+    user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        _count: {
+          select: { posts: true, comments: true },
+        },
       },
-    },
-  });
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // 檢查每日登入獎勵
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  let lastLoginDate = new Date(0);
-  if (user.lastLoginAt) {
-    lastLoginDate = new Date(user.lastLoginAt);
-    lastLoginDate.setHours(0, 0, 0, 0);
-  }
-
-  if (lastLoginDate.getTime() < today.getTime()) {
-    // 跨日登入，給予獎勵
-    await prisma.$transaction(async (tx) => {
-      await tx.user.update({
-        where: { id: user.id },
-        data: { 
-          points: { increment: 1 },
-          lastLoginAt: new Date()
-        }
-      });
-      await tx.transactionRecord.create({
-        data: {
-          userId: user.id,
-          type: "EARN_DAILY_LOGIN",
-          amount: 1,
-          description: "每日登入獎勵",
-        }
-      });
     });
-    
-    // 更新本地顯示數值
-    user.points += 1;
-  }
 
-  // 取得最近的交易紀錄
-  const recentTransactions = await prisma.transactionRecord.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
+    if (!user) {
+      redirect("/login");
+    }
+
+    // 檢查每日登入獎勵
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let lastLoginDate = new Date(0);
+    if (user.lastLoginAt) {
+      lastLoginDate = new Date(user.lastLoginAt);
+      lastLoginDate.setHours(0, 0, 0, 0);
+    }
+
+    if (lastLoginDate.getTime() < today.getTime()) {
+      // 跨日登入，給予獎勵
+      await prisma.$transaction(async (tx) => {
+        await tx.user.update({
+          where: { id: user.id },
+          data: { 
+            points: { increment: 1 },
+            lastLoginAt: new Date()
+          }
+        });
+        await tx.transactionRecord.create({
+          data: {
+            userId: user.id,
+            type: "EARN_DAILY_LOGIN",
+            amount: 1,
+            description: "每日登入獎勵",
+          }
+        });
+      });
+      
+      // 更新本地顯示數値
+      user.points += 1;
+    }
+
+    // 取得最近的交易紀錄
+    recentTransactions = await prisma.transactionRecord.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+  } catch (error: any) {
+    dbError = error.message || String(error);
+  }
 
   const statCards = [
     {
@@ -92,6 +102,23 @@ export default async function DashboardPage() {
       color: "from-rose-500 to-pink-500",
     },
   ];
+
+  if (dbError) {
+    return (
+      <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="bg-error/10 border border-error text-error p-6 rounded-2xl">
+            <h2 className="text-xl font-bold mb-2">資料載入失敗 (Server Error)</h2>
+            <p className="font-mono text-sm whitespace-pre-wrap">{dbError}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    redirect("/login");
+  }
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">

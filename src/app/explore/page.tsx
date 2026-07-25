@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import ExploreClient from "@/components/ExploreClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function ExplorePage() {
   const session = await getServerSession(authOptions);
 
@@ -11,10 +13,6 @@ export default async function ExplorePage() {
   let errorMsg: string | null = null;
 
   try {
-    if (!process.env.DATABASE_URL) {
-      throw new Error("DEBUG: process.env.DATABASE_URL is undefined or empty. POSTGRES_URL is: " + process.env.POSTGRES_URL);
-    }
-    
     // 取得最新發布的 20 筆筆記 (僅顯示 ACTIVE 狀態)
     const posts = await prisma.post.findMany({
       where: { status: "ACTIVE" },
@@ -34,8 +32,7 @@ export default async function ExplorePage() {
       updatedAt: p.updatedAt.toISOString(),
     }));
   } catch (error: any) {
-    const dbUrl = process.env.DATABASE_URL || "";
-    errorMsg = `[DEBUG] URL Type: ${typeof process.env.DATABASE_URL}, Length: ${dbUrl.length}, StartsWith: ${dbUrl.substring(0, 10)}\n` + (error.message || String(error));
+    errorMsg = error.message || String(error);
   }
 
   return (
