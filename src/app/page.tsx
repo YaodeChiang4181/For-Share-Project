@@ -1,83 +1,41 @@
 import Link from "next/link";
 
-/* ── Icon components (inline SVG to avoid extra deps) ── */
-function UploadIcon() {
-  return (
-    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-    </svg>
-  );
-}
-function SparklesIcon() {
-  return (
-    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-    </svg>
-  );
-}
-function ShieldIcon() {
-  return (
-    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-    </svg>
-  );
-}
-function GiftIcon() {
-  return (
-    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-    </svg>
-  );
-}
-function ChartIcon() {
-  return (
-    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-    </svg>
-  );
-}
-function UsersIcon() {
-  return (
-    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-    </svg>
-  );
-}
+/* ── Removed SVG icons in favor of letter icons ── */
 
 /* ── Feature card data ── */
 const features = [
   {
-    icon: <UploadIcon />,
+    letter: "U",
     title: "上傳即獲利",
     desc: "分享你的筆記與考古題，立即獲得平台積分。知識不再沉睡在硬碟裡。",
     color: "from-indigo-500 to-purple-500",
   },
   {
-    icon: <SparklesIcon />,
+    letter: "R",
     title: "有效迴響機制",
     desc: "讀者可以用積分打賞優質內容，讓真正有價值的筆記脫穎而出。",
     color: "from-amber-500 to-orange-500",
   },
   {
-    icon: <ShieldIcon />,
+    letter: "S",
     title: "雙層過濾審核",
     desc: "系統 + 社群雙重把關，確保平台內容品質，杜絕低品質或侵權素材。",
     color: "from-emerald-500 to-teal-500",
   },
   {
-    icon: <GiftIcon />,
+    letter: "M",
     title: "積分兌換商城",
     desc: "累積的積分可兌換超商禮券、電子商品卡，讓你的努力獲得實質回報。",
     color: "from-rose-500 to-pink-500",
   },
   {
-    icon: <ChartIcon />,
+    letter: "D",
     title: "數據驅動營運",
     desc: "後台即時追蹤活躍度與趨勢，透過視覺化報表為營運決策提供依據。",
     color: "from-cyan-500 to-blue-500",
   },
   {
-    icon: <UsersIcon />,
+    letter: "N",
     title: "社交裂變邀請",
     desc: "專屬邀請碼機制，邀請朋友加入雙方都獲得積分，讓平台有機成長。",
     color: "from-violet-500 to-fuchsia-500",
@@ -195,7 +153,7 @@ export default function Home() {
               >
                 {/* Icon */}
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center text-white mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
-                  {f.icon}
+                  <span className="font-bold text-xl">{f.letter}</span>
                 </div>
                 <h3 className="text-lg font-bold text-text-primary mb-2">{f.title}</h3>
                 <p className="text-sm text-text-secondary leading-relaxed">{f.desc}</p>
