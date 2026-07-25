@@ -17,8 +17,8 @@ function createPrismaClient() {
   try {
     // Use HTTP transport (PrismaNeonHttp) instead of WebSocket Pool.
     // This avoids pg-connection-string parsing entirely and works reliably on Vercel Node.js.
-    // PrismaNeonHttp takes the connection string directly and creates the neon() client internally.
-    const adapter = new PrismaNeonHttp(connectionString);
+    // Second arg is required HTTPQueryOptions: arrayMode and fullResults are mandatory fields.
+    const adapter = new PrismaNeonHttp(connectionString, { arrayMode: true, fullResults: true });
     return new PrismaClient({ adapter, log: ["error"] });
   } catch {
     return new PrismaClient({ log: ["error"] });
