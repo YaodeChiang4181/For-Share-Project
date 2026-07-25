@@ -43,28 +43,27 @@ export default async function DashboardPage() {
     }
 
     if (lastLoginDate.getTime() < today.getTime()) {
-      // 跨日登入，給予獎勵
-      await prisma.$transaction(async (tx) => {
-        await tx.user.update({
-          where: { id: user.id },
-          data: { 
-            points: { increment: 1 },
-            lastLoginAt: new Date()
-          }
-        });
-        await tx.transactionRecord.create({
-          data: {
-            userId: user.id,
-            type: "EARN_DAILY_LOGIN",
-            amount: 1,
-            description: "每日登入獎勵",
-          }
-        });
+      // 跨日登入，給予獎勵 (循序執行，相容 Neon HTTP 傳輸層)
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { 
+          points: { increment: 1 },
+          lastLoginAt: new Date()
+        }
+      });
+      await prisma.transactionRecord.create({
+        data: {
+          userId: user.id,
+          type: "EARN_DAILY_LOGIN",
+          amount: 1,
+          description: "每日登入獎勵",
+        }
       });
       
-      // 更新本地顯示數値
+      // 更新本地顯示數值
       user.points += 1;
     }
+
 
     // 取得最近的交易紀錄
     recentTransactions = await prisma.transactionRecord.findMany({
