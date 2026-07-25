@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const SHOP_ITEMS = [
-  { id: "item-1", name: "7-11 50元 電子禮券", pointsCost: 50, icon: "🏪", desc: "憑條碼至門市兌換等值商品" },
-  { id: "item-2", name: "全家 100元 購物金", pointsCost: 100, icon: "🍦", desc: "憑條碼至門市兌換等值商品" },
-  { id: "item-3", name: "星巴克 150元 飲品券", pointsCost: 150, icon: "☕", desc: "憑條碼兌換任一 150 元內飲品" },
-  { id: "item-4", name: "Line Points 200點", pointsCost: 200, icon: "🟢", desc: "將直接匯入您的 Line 帳號" },
+  { id: "item-1", name: "7-11 50元 電子禮券", pointsCost: 50, desc: "憑條碼至門市兌換等值商品" },
+  { id: "item-2", name: "全家 100元 購物金", pointsCost: 100, desc: "憑條碼至門市兌換等值商品" },
+  { id: "item-3", name: "星巴克 150元 飲品券", pointsCost: 150, desc: "憑條碼兌換任一 150 元內飲品" },
+  { id: "item-4", name: "Line Points 200點", pointsCost: 200, desc: "將直接匯入您的 Line 帳號" },
 ];
 
 export default function ShopPage() {
@@ -83,7 +83,7 @@ export default function ShopPage() {
     <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-extrabold text-text-primary mb-4">🎁 積分兌換商城</h1>
+          <h1 className="text-4xl font-extrabold text-text-primary mb-4">積分兌換商城</h1>
           <p className="text-lg text-text-secondary">將您的知識產出變現，兌換豐富好禮！</p>
         </div>
 
@@ -114,14 +114,13 @@ export default function ShopPage() {
             {role === "FREE" && (
               <div>
                 <Link href="/upgrade" className="text-sm font-bold text-primary hover:text-primary-dark underline underline-offset-4">
-                  🚀 升級 Share 會員，解除提領限制！
+                  升級 Share 會員，解除提領限制！
                 </Link>
               </div>
             )}
             
             <div className="mt-2">
               <Link href="/inbox" className="inline-flex items-center gap-2 px-4 py-2 bg-text-primary text-white rounded-lg text-sm font-bold hover:bg-black transition-colors shadow-sm">
-                <span>📬</span>
                 前往信箱查看禮物
               </Link>
             </div>
@@ -131,7 +130,6 @@ export default function ShopPage() {
         {/* 經濟儀表板 (匯率公告) */}
         <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-5 mb-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="text-3xl">📈</div>
             <div>
               <h2 className="text-lg font-bold text-indigo-700 dark:text-indigo-400">總體經濟儀表板</h2>
               <p className="text-sm text-text-secondary">
@@ -150,7 +148,7 @@ export default function ShopPage() {
         {/* 錯誤與成功訊息 */}
         {errorMsg && (
           <div className="mb-8 p-4 bg-error/10 border border-error/20 rounded-xl text-error text-sm font-semibold flex items-center gap-2">
-            <span>⚠️</span> {errorMsg}
+            {errorMsg}
             {errorMsg.includes("升級") && (
               <Link href="/upgrade" className="ml-auto px-3 py-1 bg-error text-white rounded shadow-sm hover:bg-error/90 transition-colors">
                 前往升級
@@ -161,7 +159,7 @@ export default function ShopPage() {
         
         {successMsg && (
           <div className="mb-8 p-4 bg-success/10 border border-success/20 rounded-xl text-success text-sm font-semibold flex items-center gap-2">
-            <span>🎉</span> {successMsg}
+            {successMsg}
             <Link href="/inbox" className="ml-auto px-3 py-1 bg-success text-white rounded shadow-sm hover:bg-success/90 transition-colors">
               開啟信箱
             </Link>
@@ -179,8 +177,7 @@ export default function ShopPage() {
                     物價已調漲
                   </div>
                 )}
-                <div className="text-5xl mb-4">{item.icon}</div>
-                <h3 className="text-xl font-bold text-text-primary mb-2">{item.name}</h3>
+                <h3 className="text-xl font-bold text-text-primary mb-2 mt-2">{item.name}</h3>
                 <p className="text-text-secondary text-sm mb-6 flex-1">{item.desc}</p>
                 
                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
