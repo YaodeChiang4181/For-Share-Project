@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { neon } from "@neondatabase/serverless";
 import { PrismaNeonHttp } from "@prisma/adapter-neon";
 
 const globalForPrisma = globalThis as unknown as {
@@ -16,10 +15,10 @@ function createPrismaClient() {
   }
 
   try {
-    // Use HTTP transport (neon tagged template) instead of WebSocket Pool.
+    // Use HTTP transport (PrismaNeonHttp) instead of WebSocket Pool.
     // This avoids pg-connection-string parsing entirely and works reliably on Vercel Node.js.
-    const sql = neon(connectionString);
-    const adapter = new PrismaNeonHttp(sql);
+    // PrismaNeonHttp takes the connection string directly and creates the neon() client internally.
+    const adapter = new PrismaNeonHttp(connectionString);
     return new PrismaClient({ adapter, log: ["error"] });
   } catch {
     return new PrismaClient({ log: ["error"] });
