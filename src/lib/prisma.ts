@@ -1,5 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaNeonHttp } from "@prisma/adapter-neon";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
+
+neonConfig.webSocketConstructor = ws;
 
 const globalForPrisma = globalThis as unknown as {
   _prisma: PrismaClient | undefined;
@@ -15,12 +19,12 @@ function createPrismaClient() {
   }
 
   try {
-    // Use HTTP transport (PrismaNeonHttp) instead of WebSocket Pool.
-    // This avoids pg-connection-string parsing entirely and works reliably on Vercel Node.js.
-    // Second arg is required HTTPQueryOptions: arrayMode and fullResults are mandatory fields.
-    const adapter = new PrismaNeonHttp(connectionString, { arrayMode: true, fullResults: true });
+    // 使用 WebSocket Pool (PrismaNeon) 取代 Http，以支援 interactive transactions ($transaction)
+    const pool = new Pool({ connectionString });
+    const adapter = new PrismaNeon(pool);
     return new PrismaClient({ adapter, log: ["error"] });
-  } catch {
+  } catch (err) {
+    console.error("Prisma init error:", err);
     return new PrismaClient({ log: ["error"] });
   }
 }

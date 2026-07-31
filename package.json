@@ -10,8 +10,8 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@google/genai": "^0.1.2",
-    "@neondatabase/serverless": "^1.1.0",
+    "@google/genai": "latest",
+    "@neondatabase/serverless": "^0.10.4",
     "@prisma/adapter-better-sqlite3": "^7.8.0",
     "@prisma/adapter-neon": "^7.8.0",
     "@prisma/client": "^7.8.0",
