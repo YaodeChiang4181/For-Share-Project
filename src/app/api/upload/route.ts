@@ -7,6 +7,8 @@ import { NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
 import fs from "fs";
+import { generateSummary, moderateContent } from "@/lib/ai";
+import { extractTextFromPDF } from "@/lib/pdfExtract";
 
 export async function POST(req: Request) {
   try {
@@ -50,13 +52,39 @@ export async function POST(req: Request) {
     // 檔案的對外公開 URL (供前端下載或預覽)
     const fileUrl = `/uploads/${filename}`;
 
+    // --- AI 摘要懶人包處理 ---
+    let textToSummarize = content || "";
+    if (originalExt.toLowerCase() === ".pdf") {
+      const extractedText = await extractTextFromPDF(buffer);
+      if (extractedText) {
+        textToSummarize = extractedText;
+      }
+    }
+    
+    // --- Phase 2: 第一層 AI 內容審核 ---
+    if (textToSummarize) {
+      const moderation = await moderateContent(textToSummarize);
+      if (moderation.flagged) {
+        return NextResponse.json(
+          { error: `上傳失敗，內容審核未通過：${moderation.reason}` },
+          { status: 400 }
+        );
+      }
+    }
+    
+    let finalContent = content;
+    if (textToSummarize) {
+      const aiSummary = await generateSummary(textToSummarize);
+      finalContent = `> ✨ **AI 摘要懶人包**\n\n${aiSummary}\n\n---\n\n${content}`;
+    }
+    // ----------------------
+
     // 使用 Transaction 確保寫入文章與給予獎勵同時成功
     const post = await prisma.$transaction(async (tx) => {
-      // 1. 建立筆記文章
       const newPost = await tx.post.create({
         data: {
           title,
-          content,
+          content: finalContent,
           isPaid,
           fileUrl,
           category: tagsStr || "未分類",

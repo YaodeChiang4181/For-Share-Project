@@ -107,6 +107,26 @@ export async function POST(req: Request) {
       }
     });
 
+    // --- Phase 2: 社群有效迴響 (自動隱藏機制) ---
+    // 計算該篇筆記目前的有效檢舉總數
+    const reportCount = await prisma.report.count({
+      where: {
+        postId,
+        status: { in: ["PENDING", "RESOLVED"] } // 不計入已被駁回 (DISMISSED) 的檢舉
+      }
+    });
+
+    // 當檢舉達 3 次以上，觸發自動隱藏 (社群自治)
+    if (reportCount >= 3) {
+      await prisma.post.update({
+        where: { id: postId },
+        data: { status: "HIDDEN" }
+      });
+      return NextResponse.json({ 
+        message: "檢舉已成功送出。由於該篇筆記已累積多起檢舉，系統已暫時將其隱藏以待審核。" 
+      }, { status: 200 });
+    }
+
     return NextResponse.json({ message: "檢舉已成功送出，管理員將盡快審核。" }, { status: 200 });
   } catch (error) {
     console.error("Report error:", error);
