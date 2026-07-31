@@ -19,14 +19,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "找不到使用者" }, { status: 404 });
     }
 
-    if (user.role === "VIP") {
+    if (user.role === "SHARE_VIP") {
       return NextResponse.json({ error: "您已經是 Share 會員了！" }, { status: 400 });
     }
 
-    // 模擬綠界金流：升級會員
-    await prisma.user.update({
-      where: { id: userId },
-      data: { role: "VIP" }
+    // Phase 3: 行為經濟學 (沉沒成本)
+    const UPGRADE_COST = 150;
+    if (user.points < UPGRADE_COST) {
+      return NextResponse.json({ 
+        error: `升級 Share 會員需要 ${UPGRADE_COST} 點積分，您的積分不足！` 
+      }, { status: 403 });
+    }
+
+    // 模擬綠界金流 / 積分升級會員
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { 
+          role: "SHARE_VIP",
+          points: { decrement: UPGRADE_COST }
+        }
+      });
+
+      await tx.transactionRecord.create({
+        data: {
+          userId,
+          type: "SPEND_VIP",
+          amount: -UPGRADE_COST,
+          description: "升級為 Share 會員"
+        }
+      });
     });
 
     // 發送信件通知

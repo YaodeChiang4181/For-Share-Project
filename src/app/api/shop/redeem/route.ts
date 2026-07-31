@@ -33,8 +33,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "您的積分不足" }, { status: 403 });
     }
 
-    // 檢查免費用戶的兌換上限 (預設 50 點，隨通膨率自動調整)
+    // Phase 3: 行為經濟學 (損失厭惡) - 檢查免費用戶兌換高階商品的限制
     if (currentUser.role === "FREE") {
+      // 假設 pointsCost >= 100 屬於高階商品（如超商商品卡）
+      if (pointsCost >= 100) {
+        return NextResponse.json({ 
+          error: "此為 Share 會員專屬獎勵，請先升級 VIP，以免浪費您的積分！",
+          requiresUpgrade: true
+        }, { status: 403 });
+      }
+
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
