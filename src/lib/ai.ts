@@ -1,8 +1,12 @@
 import { GoogleGenAI } from '@google/genai';
 
-// Initialize the Google Gen AI SDK
-// It automatically picks up GEMINI_API_KEY from environment variables
-const ai = new GoogleGenAI();
+let aiInstance: GoogleGenAI | null = null;
+function getAi() {
+  if (!aiInstance) {
+    aiInstance = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  }
+  return aiInstance;
+}
 
 export async function generateSummary(text: string): Promise<string> {
   if (!text || text.trim() === '') {
@@ -24,7 +28,7 @@ ${text.substring(0, 15000)} // 避免超過 token 上限，擷取前面部分
 `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAi().models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
     });
@@ -54,7 +58,7 @@ ${text.substring(0, 5000)}
 `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAi().models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
     });
