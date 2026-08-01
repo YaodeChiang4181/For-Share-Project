@@ -20,23 +20,25 @@ export default function UpgradePage() {
     }
 
     setIsProcessing(true);
-    // 模擬綠界金流跳轉等待時間
-    await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
-      const res = await fetch("/api/upgrade", { method: "POST" });
+      const res = await fetch("/api/payments/create", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "VIP_UPGRADE" })
+      });
+      
       if (res.ok) {
-        setSuccess(true);
-        update(); // 重新獲取 session 以更新 role
-        setTimeout(() => {
-          router.push("/shop");
-        }, 2000);
+        const { html } = await res.json();
+        // 渲染綠界表單，它會自動 submit 跳轉
+        document.body.insertAdjacentHTML('beforeend', html);
       } else {
-        alert("升級失敗，請稍後再試");
+        const data = await res.json();
+        alert(data.error || "建立訂單失敗，請稍後再試");
+        setIsProcessing(false);
       }
     } catch (err) {
-      alert("網路錯誤");
-    } finally {
+      alert("網路錯誤，請稍後再試");
       setIsProcessing(false);
     }
   };

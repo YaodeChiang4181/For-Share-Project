@@ -51,6 +51,7 @@ model User {
   inboxMessages      InboxMessage[]
   searchLogs         SearchLog[]
   pageViewLogs       PageViewLog[]
+  paymentOrders      PaymentOrder[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -235,3 +236,35 @@ model PageViewLog {
 
   createdAt DateTime @default(now())
 }
+
+// -----------------------------------------------------------------------------
+// 金流與訂單系統 (Payment & Order System)
+// -----------------------------------------------------------------------------
+
+model PaymentOrder {
+  id              String   @id @default(cuid())
+  merchantTradeNo String   @unique // 綠界專屬訂單編號
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  
+  amount          Int      // 金額 (TWD)
+  itemName        String   // 購買項目 ("Share VIP 終身會員", "購買 100 積分" 等)
+  
+  // 訂單類型: "VIP_UPGRADE" | "POINTS_TOPUP"
+  itemType        String
+  
+  // 如果是儲值積分，這筆訂單代表多少積分
+  pointsToAdd     Int      @default(0)
+  
+  // 狀態: "PENDING" | "PAID" | "FAILED"
+  status          String   @default("PENDING")
+  
+  // 第三方金流商回傳資訊
+  tradeNo         String?  // 綠界的交易序號
+  paymentDate     DateTime?
+  paymentType     String?  // 付款方式 (Credit, ATM...)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+

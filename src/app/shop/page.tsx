@@ -111,17 +111,14 @@ export default function ShopPage() {
               )}
             </div>
             
-            {role === "FREE" && (
-              <div>
-                <Link href="/upgrade" className="text-sm font-bold text-primary hover:text-primary-dark underline underline-offset-4">
-                  升級 Share 會員，解除提領限制！
+            <div className="flex gap-4 mt-2">
+              {role === "FREE" && (
+                <Link href="/upgrade" className="flex-1 text-center py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg text-sm font-bold shadow hover:-translate-y-0.5 transition-all">
+                  💎 升級無限兌換
                 </Link>
-              </div>
-            )}
-            
-            <div className="mt-2">
-              <Link href="/inbox" className="inline-flex items-center gap-2 px-4 py-2 bg-text-primary text-white rounded-lg text-sm font-bold hover:bg-black transition-colors shadow-sm">
-                前往信箱查看禮物
+              )}
+              <Link href="/topup" className="flex-1 text-center py-2 bg-primary text-white rounded-lg text-sm font-bold shadow hover:bg-primary-dark hover:-translate-y-0.5 transition-all">
+                💰 儲值積分
               </Link>
             </div>
           </div>
