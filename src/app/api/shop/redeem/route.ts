@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       // 假設 pointsCost >= 100 屬於高階商品（如超商商品卡）
       if (pointsCost >= 100) {
         return NextResponse.json({ 
-          error: "此為 Share 會員專屬獎勵，請先升級 VIP，以免浪費您的積分！",
+          error: "高階商品為 Share 會員專屬獎勵，請先升級 VIP！",
           requiresUpgrade: true
         }, { status: 403 });
       }
@@ -47,10 +47,8 @@ export async function POST(req: Request) {
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      // 取得當前總體經濟匯率
-      const rateSetting = await prisma.systemSetting.findUnique({ where: { key: "exchangeRate" } });
-      const currentRate = rateSetting ? parseFloat(rateSetting.value) : 1.0;
-      const dynamicLimit = 50 * currentRate;
+      // 固定每月限額 50 點
+      const monthlyLimit = 50;
 
       const monthlyRequests = await prisma.withdrawalRequest.aggregate({
         where: {
@@ -62,9 +60,9 @@ export async function POST(req: Request) {
 
       const currentRedeemed = monthlyRequests._sum.amount || 0;
       
-      if (currentRedeemed + pointsCost > dynamicLimit) {
+      if (currentRedeemed + pointsCost > monthlyLimit) {
         return NextResponse.json({ 
-          error: `免費會員每月兌換上限為 ${dynamicLimit} 點 (依當前通膨率動態調整)。升級 Share 會員解鎖無上限兌換！`,
+          error: `一般會員每月兌換上限為 ${monthlyLimit} 點，您本月已達上限。升級 Share 會員可解除提領限制！`,
           requiresUpgrade: true
         }, { status: 403 });
       }
