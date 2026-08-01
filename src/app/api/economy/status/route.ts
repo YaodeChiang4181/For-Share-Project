@@ -9,8 +9,8 @@ export async function GET(req: Request) {
     const forceUpdate = searchParams.get("forceUpdate") === "true";
 
     // 取得當前設定
-    let rateSetting = await prisma.systemSetting.findUnique({ where: { key: "exchangeRate" } });
-    let lastUpdatedSetting = await prisma.systemSetting.findUnique({ where: { key: "lastUpdated" } });
+    const rateSetting = await prisma.systemSetting.findUnique({ where: { key: "exchangeRate" } });
+    const lastUpdatedSetting = await prisma.systemSetting.findUnique({ where: { key: "lastUpdated" } });
 
     const now = new Date();
     let shouldUpdate = false;
