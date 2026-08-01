@@ -9,10 +9,13 @@ export const dynamic = "force-dynamic";
 export default async function NoteDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const session = await getServerSession(authOptions);
-  const postId = params.id;
+  
+  // Next.js 15 requires awaiting params
+  const resolvedParams = await params;
+  const postId = resolvedParams.id;
 
   let post: any = null;
   let totalTips = 0;
