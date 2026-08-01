@@ -107,7 +107,7 @@ export default function ShopPage() {
               {role === "VIP" ? (
                 <span className="text-sm font-extrabold text-amber-500">💎 Share 會員 (無兌換上限)</span>
               ) : (
-                <span className="text-sm font-bold text-slate-500">一般會員 (每月限額 50 點)</span>
+                <span className="text-sm font-bold text-slate-500">一般會員 (每月限額 {50 * exchangeRate} 點)</span>
               )}
             </div>
             
