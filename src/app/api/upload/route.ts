@@ -31,26 +31,15 @@ export async function POST(req: Request) {
 
     const isPaid = isPaidStr === "true";
 
-    // 將檔案存入 public/uploads
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
-    // 確保資料夾存在
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    // 產生唯一檔名，避免重複
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const originalExt = path.extname(file.name);
-    const filename = `note-${uniqueSuffix}${originalExt}`;
-    const filePath = path.join(uploadDir, filename);
-
-    await writeFile(filePath, buffer);
-
-    // 檔案的對外公開 URL (供前端下載或預覽)
-    const fileUrl = `/uploads/${filename}`;
+    
+    // 為了相容 Vercel 的唯讀檔案系統 (Read-only Serverless function)，
+    // 我們直接將檔案轉為 Base64 Data URI 存入資料庫，避免寫入 /public/uploads 失敗。
+    const mimeType = file.type || "application/octet-stream";
+    const base64Data = buffer.toString("base64");
+    const fileUrl = `data:${mimeType};base64,${base64Data}`;
 
     // --- AI 摘要懶人包處理 ---
     let textToSummarize = content || "";

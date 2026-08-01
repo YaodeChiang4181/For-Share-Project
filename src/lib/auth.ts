@@ -20,8 +20,12 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         });
 
-        if (!user || !user.password) {
-          throw new Error("帳號或密碼錯誤");
+        if (!user) {
+          throw new Error("您未具有使用身分，麻煩您先註冊喔");
+        }
+
+        if (!user.password) {
+          throw new Error("此帳號未設定密碼，請使用正確的登入方式");
         }
 
         if (user.bannedUntil && user.bannedUntil > new Date()) {
