@@ -10,6 +10,18 @@ import fs from "fs";
 import { generateSummary, moderateContent } from "@/lib/ai";
 import { extractTextFromPDF } from "@/lib/pdfExtract";
 
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
+// 初始化 S3 Client (如果環境變數有設定的話)
+const s3 = process.env.S3_ENDPOINT ? new S3Client({
+  region: "auto", // Cloudflare R2 必須設定為 auto
+  endpoint: process.env.S3_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "",
+  }
+}) : null;
+
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -34,12 +46,28 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const originalExt = path.extname(file.name);
-    
-    // 為了相容 Vercel 的唯讀檔案系統 (Read-only Serverless function)，
-    // 我們直接將檔案轉為 Base64 Data URI 存入資料庫，避免寫入 /public/uploads 失敗。
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const filename = `note-${uniqueSuffix}${originalExt}`;
     const mimeType = file.type || "application/octet-stream";
-    const base64Data = buffer.toString("base64");
-    const fileUrl = `data:${mimeType};base64,${base64Data}`;
+    
+    let fileUrl = "";
+
+    // 如果有設定 S3，就上傳到 R2
+    if (s3 && process.env.S3_BUCKET_NAME) {
+      await s3.send(new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: filename,
+        Body: buffer,
+        ContentType: mimeType,
+      }));
+      // R2 預設的 S3 API URL (若未設定 public domain，後續可能需要 presigned URL 或設定公開 R2.dev 網址)
+      fileUrl = `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET_NAME}/${filename}`;
+    } else {
+      // 為了相容 Vercel 的唯讀檔案系統 (Read-only Serverless function)，
+      // 且沒有 S3 的情況下，轉為 Base64 Data URI 作為 fallback。
+      const base64Data = buffer.toString("base64");
+      fileUrl = `data:${mimeType};base64,${base64Data}`;
+    }
 
     // --- AI 摘要懶人包處理 ---
     let textToSummarize = content || "";
