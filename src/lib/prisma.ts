@@ -11,10 +11,14 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   // Trim to remove any accidental trailing newlines from Vercel env vars
-  const connectionString = (process.env.DATABASE_URL || process.env.POSTGRES_URL || "").trim();
+  let connectionString = (process.env.DATABASE_URL || process.env.POSTGRES_URL || "").trim();
 
-  // In build environments with no URL, return a bare client (won't connect but won't crash on import)
-  if (!connectionString) {
+  // 移除使用者在 Vercel 貼上時可能不小心帶入的雙引號或單引號
+  connectionString = connectionString.replace(/^["']|["']$/g, "").trim();
+
+  // 檢查是否為無效字串 (例如真的被存成 "undefined" 字串)
+  if (!connectionString || connectionString === "undefined" || connectionString === "null" || !connectionString.startsWith("postgres")) {
+    console.error("無效的資料庫連線字串 (Invalid DATABASE_URL):", connectionString);
     return new PrismaClient({ log: ["error"] });
   }
 
