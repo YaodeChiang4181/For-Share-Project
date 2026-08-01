@@ -224,6 +224,24 @@ export default function ClientPostViewer({ post, currentUserId, totalTips = 0, t
     }
   };
 
+  const getFileType = (url: string | null) => {
+    if (!url) return 'unknown';
+    if (url.startsWith('data:')) {
+      if (url.startsWith('data:image/')) return 'image';
+      if (url.startsWith('data:application/pdf')) return 'pdf';
+      return 'other';
+    }
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.match(/\.(jpeg|jpg|gif|png|webp|svg)(\?.*)?$/i)) return 'image';
+    if (lowerUrl.match(/\.pdf(\?.*)?$/i)) return 'pdf';
+    return 'other';
+  };
+
+  const getDownloadUrl = (url: string) => {
+    if (url.startsWith('data:')) return url;
+    return `/api/download?url=${encodeURIComponent(url)}`;
+  };
+
   return (
     <>
       <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-surface">
@@ -290,14 +308,30 @@ export default function ClientPostViewer({ post, currentUserId, totalTips = 0, t
               <div className="mt-10 p-6 rounded-2xl bg-surface border border-border flex flex-col items-center justify-center text-center">
                 <div className="text-4xl mb-4">📄</div>
                 <h3 className="text-lg font-bold text-text-primary mb-2">附加檔案</h3>
-                <p className="text-sm text-text-secondary mb-6">點擊下方按鈕預覽或下載原檔</p>
+                
+                <div className="w-full mb-6 mt-4 border border-border rounded-xl overflow-hidden bg-background">
+                  {getFileType(post.fileUrl) === 'image' && (
+                    <img src={getDownloadUrl(post.fileUrl)} alt="Preview" className="max-w-full h-auto mx-auto max-h-[600px] object-contain" />
+                  )}
+                  {getFileType(post.fileUrl) === 'pdf' && (
+                    <iframe src={getDownloadUrl(post.fileUrl)} className="w-full h-[600px] border-none bg-white" title="PDF Preview" />
+                  )}
+                  {getFileType(post.fileUrl) === 'other' && (
+                    <div className="p-12 text-text-secondary flex flex-col items-center">
+                      <span className="text-5xl mb-4">📦</span>
+                      <p>此檔案格式無法在瀏覽器內預覽，請點擊下方按鈕下載原檔。</p>
+                    </div>
+                  )}
+                </div>
+
                 <a
-                  href={post.fileUrl}
+                  href={getDownloadUrl(post.fileUrl)}
+                  download
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-6 py-3 rounded-full text-sm font-semibold text-white bg-primary hover:bg-primary-dark transition-all hover:scale-[1.02]"
                 >
-                  檢視檔案
+                  下載 / 檢視原檔
                 </a>
               </div>
             )}
