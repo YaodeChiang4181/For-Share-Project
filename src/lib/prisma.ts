@@ -26,9 +26,19 @@ function createPrismaClient(): PrismaClient {
   // 移除使用者在 Vercel 貼上時可能不小心帶入的雙引號或單引號
   connectionString = connectionString.replace(/^["']|["']$/g, "").trim();
 
-  if (!connectionString || !connectionString.startsWith("postgres") || connectionString.length < 30) {
-    console.error("[prisma.ts] ❌ DATABASE_URL 無效或未設定:", connectionString || "(空)");
-    return new PrismaClient({ log: ["error"] });
+  if (!connectionString || !connectionString.startsWith("postgres") || connectionString.length < 30 || !connectionString.includes("@")) {
+    const isSet = typeof process.env.DATABASE_URL === "string";
+    const rawLength = isSet ? process.env.DATABASE_URL?.length : 0;
+    
+    throw new Error(
+      `[環境變數錯誤] DATABASE_URL 無效或未在 Production 環境正確載入！\n` +
+      `請前往 Vercel > Settings > Environment Variables 確認變數是否已勾選 Production，並且已經重新 Deploy。\n\n` +
+      `除錯資訊:\n` +
+      `- 原始變數是否存在: ${isSet ? "是" : "否"}\n` +
+      `- 原始字串長度: ${rawLength}\n` +
+      `- 處理後字串長度: ${connectionString.length}\n` +
+      `- 字串前綴: ${connectionString.substring(0, 12)}...`
+    );
   }
 
   const pool = new Pool({ connectionString });
