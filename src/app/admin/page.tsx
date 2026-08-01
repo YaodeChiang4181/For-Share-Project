@@ -68,7 +68,7 @@ export default function AdminPage() {
   const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"moderation" | "analytics">("moderation");
+  const [activeTab, setActiveTab] = useState<"moderation" | "analytics" | "content">("moderation");
 
   // --- 審核中心 ---
   const [reports, setReports] = useState<ReportItem[]>([]);
@@ -81,6 +81,14 @@ export default function AdminPage() {
   const [analyticsDays, setAnalyticsDays] = useState(30);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
+
+  // --- 全站內容管理 ---
+  const [posts, setPosts] = useState<any[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [postsSearch, setPostsSearch] = useState("");
+  const [postsPage, setPostsPage] = useState(1);
+  const [postsTotalPages, setPostsTotalPages] = useState(1);
+  const [expandedGlobalPost, setExpandedGlobalPost] = useState<string | null>(null);
 
   // 注意事項 1：前端權限防護
   useEffect(() => {
@@ -123,17 +131,57 @@ export default function AdminPage() {
     }
   }, []);
 
+  // 載入全站內容
+  const loadPosts = useCallback(async (page: number, search: string) => {
+    setPostsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/posts?page=${page}&q=${encodeURIComponent(search)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPosts(data.posts || []);
+        setPostsTotalPages(data.totalPages || 1);
+        setPostsPage(data.currentPage || 1);
+      }
+    } catch {
+      setActionMsg("❌ 載入筆記列表失敗");
+    } finally {
+      setPostsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (sessionStatus === "authenticated") {
       loadReports();
+      loadPosts(1, "");
     }
-  }, [sessionStatus, loadReports]);
+  }, [sessionStatus, loadReports, loadPosts]);
 
   useEffect(() => {
     if (activeTab === "analytics") {
       loadAnalytics(analyticsDays);
     }
   }, [activeTab, analyticsDays, loadAnalytics]);
+
+  // 執行全站內容操作
+  const handleModeratePost = async (postId: string, action: string) => {
+    setActionMsg("");
+    try {
+      const res = await fetch("/api/admin/posts/moderate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId, action }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setActionMsg(`✅ ${data.message}`);
+        await loadPosts(postsPage, postsSearch);
+      } else {
+        setActionMsg(`❌ ${data.error}`);
+      }
+    } catch {
+      setActionMsg("❌ 操作失敗，請稍後再試");
+    }
+  };
 
   // 執行審核判決（封包式）
   const handleResolve = async (reportId: string, action: string) => {
@@ -178,6 +226,7 @@ export default function AdminPage() {
         <div className="flex gap-2 mb-8">
           {[
             { key: "moderation" as const, label: "👮 內容審核中心", count: reports.length },
+            { key: "content" as const, label: "📚 全站內容管理" },
             { key: "analytics" as const, label: "📊 數據儀表板" },
           ].map((tab) => (
             <button
@@ -460,6 +509,155 @@ export default function AdminPage() {
                   )}
                 </div>
               </>
+            )}
+          </div>
+        )}
+
+        {/* ================ Tab 3: 全站內容管理 ================ */}
+        {activeTab === "content" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-surface border border-border p-4 rounded-2xl">
+              <div className="w-full sm:w-96 flex gap-2">
+                <input
+                  type="text"
+                  placeholder="搜尋筆記標題、內容或作者..."
+                  value={postsSearch}
+                  onChange={(e) => setPostsSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && loadPosts(1, postsSearch)}
+                  className="flex-1 bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-primary/50 transition-colors"
+                />
+                <button
+                  onClick={() => loadPosts(1, postsSearch)}
+                  className="px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-dark transition-colors"
+                >
+                  搜尋
+                </button>
+              </div>
+            </div>
+
+            {postsLoading ? (
+              <div className="bg-surface border border-border rounded-2xl p-12 text-center">
+                <p className="text-text-tertiary animate-pulse">載入筆記中...</p>
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="bg-surface border border-border rounded-2xl p-12 text-center">
+                <p className="text-5xl mb-4">🔍</p>
+                <h3 className="text-xl font-bold text-text-primary mb-2">找不到筆記</h3>
+                <p className="text-text-secondary">試試看其他關鍵字？</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {posts.map((post) => (
+                  <div
+                    key={post.id}
+                    className={`bg-surface border ${post.status === 'HIDDEN' ? 'border-error/30 bg-error/5' : 'border-border'} rounded-2xl overflow-hidden transition-all hover:shadow-md`}
+                  >
+                    <button
+                      onClick={() => setExpandedGlobalPost(expandedGlobalPost === post.id ? null : post.id)}
+                      className="w-full p-6 text-left flex items-start justify-between gap-4"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          {post.status === "HIDDEN" ? (
+                            <span className="px-2.5 py-1 rounded-lg bg-error text-white text-xs font-bold">
+                              已下架
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded-lg bg-success/10 text-success border border-success/20 text-xs font-bold">
+                              上架中
+                            </span>
+                          )}
+                          <span className="px-2.5 py-1 rounded-lg bg-background border border-border text-text-secondary text-xs font-medium">
+                            {post.category}
+                          </span>
+                        </div>
+                        <h3 className={`text-base font-bold truncate ${post.status === 'HIDDEN' ? 'text-text-secondary line-through' : 'text-text-primary'}`}>
+                          📄 {post.title}
+                        </h3>
+                        <p className="text-xs text-text-tertiary mt-1">
+                          作者：{post.author?.name} ({post.author?.email}) ・ 上傳於 {new Date(post.createdAt).toLocaleDateString("zh-TW")}
+                        </p>
+                      </div>
+                      <span className="text-text-tertiary text-lg flex-shrink-0">
+                        {expandedGlobalPost === post.id ? "▲" : "▼"}
+                      </span>
+                    </button>
+
+                    {expandedGlobalPost === post.id && (
+                      <div className="px-6 pb-6 border-t border-border pt-4 space-y-4 animate-fade-in">
+                        <div className="bg-background rounded-xl p-4">
+                          <p className="text-xs font-bold text-text-tertiary mb-2">📝 筆記內容</p>
+                          <p className="text-sm text-text-secondary whitespace-pre-wrap">
+                            {post.content}
+                          </p>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-3 pt-2">
+                          {post.status !== "HIDDEN" && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  if (confirm('確定要強制下架這篇筆記嗎？')) {
+                                    handleModeratePost(post.id, "hide");
+                                  }
+                                }}
+                                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 transition-all shadow-sm"
+                              >
+                                🚫 強制下架
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm('確定要下架此筆記，並停權該作者 7 天嗎？這將會發送信箱通知。')) {
+                                    handleModeratePost(post.id, "ban");
+                                  }
+                                }}
+                                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-error hover:bg-red-600 transition-all shadow-sm"
+                              >
+                                ⛔ 強制下架 + 停權作者 7 天
+                              </button>
+                            </>
+                          )}
+                          {post.status === "HIDDEN" && (
+                            <button
+                              onClick={() => {
+                                if (confirm('確定要恢復這篇筆記嗎？')) {
+                                  handleModeratePost(post.id, "restore");
+                                }
+                              }}
+                              className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-success hover:bg-emerald-600 transition-all shadow-sm"
+                            >
+                              ♻️ 恢復上架
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* 分頁控制 */}
+                {postsTotalPages > 1 && (
+                  <div className="flex justify-center items-center gap-4 pt-4">
+                    <button
+                      onClick={() => loadPosts(postsPage - 1, postsSearch)}
+                      disabled={postsPage === 1}
+                      className="px-4 py-2 rounded-xl text-sm font-bold bg-surface border border-border text-text-secondary disabled:opacity-50 transition-colors"
+                    >
+                      上一頁
+                    </button>
+                    <span className="text-sm font-medium text-text-secondary">
+                      {postsPage} / {postsTotalPages}
+                    </span>
+                    <button
+                      onClick={() => loadPosts(postsPage + 1, postsSearch)}
+                      disabled={postsPage === postsTotalPages}
+                      className="px-4 py-2 rounded-xl text-sm font-bold bg-surface border border-border text-text-secondary disabled:opacity-50 transition-colors"
+                    >
+                      下一頁
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}

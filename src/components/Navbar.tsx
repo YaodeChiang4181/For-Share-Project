@@ -50,7 +50,7 @@ export default function Navbar() {
 
           {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-1">
-            {[
+            {(!isLoggedIn || (session.user as any)?.role !== "ADMIN") && [
               { label: "探索知識", href: "/explore" },
               { label: "排行榜", href: "/leaderboard" },
               { label: "積分商城", href: "/shop" },
@@ -194,7 +194,7 @@ export default function Navbar() {
           style={{ transitionDuration: "var(--transition-base)" }}
         >
           <div className="flex flex-col gap-1 pt-2">
-            {[
+            {(!isLoggedIn || (session.user as any)?.role !== "ADMIN") && [
               { label: "探索知識", href: "/explore" },
               { label: "排行榜", href: "/leaderboard" },
               { label: "積分商城", href: "/shop" },
