@@ -123,10 +123,21 @@ export default function ClientPostViewer({ post, currentUserId, totalTips = 0, t
   };
 
   // 使用者確認「已不在使用」→ 判定為無效、停止計時並送出目前秒數
-  const handleStillHereCancel = () => {
+  const handleStillHereCancel = useCallback(() => {
     setShowStillHere(false);
     sendDwellTime();
-  };
+    router.push("/");
+  }, [sendDwellTime, router]);
+
+  // 注意事項 6：通知跳出後 10 秒無回應自動跳轉
+  useEffect(() => {
+    if (showStillHere) {
+      const timer = setTimeout(() => {
+        handleStillHereCancel();
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [showStillHere, handleStillHereCancel]);
 
   // ============ 強制打賞機制 ============
   useEffect(() => {
