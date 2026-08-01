@@ -88,10 +88,10 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Registration error:", error);
     return NextResponse.json(
-      { error: "伺服器錯誤，請稍後再試" },
+      { error: error?.message || "伺服器錯誤，請稍後再試" },
       { status: 500 }
     );
   }
