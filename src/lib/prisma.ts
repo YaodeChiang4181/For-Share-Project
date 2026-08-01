@@ -5,15 +5,25 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient(): PrismaClient {
-  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL;
-  
-  if (!url || typeof url !== "string" || url.length < 10) {
-    throw new Error(`[ForShare 終極除錯] Vercel 根本沒有讀到 DATABASE_URL！目前讀到的值是: ${url}`);
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const { Pool, neonConfig } = require("@neondatabase/serverless");
+  const { PrismaNeon } = require("@prisma/adapter-neon");
+  const ws = require("ws");
+  /* eslint-enable @typescript-eslint/no-require-imports */
+
+  neonConfig.webSocketConstructor = ws;
+
+  const url = (process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || "").trim();
+  const connectionString = url.replace(/^["']|["']$/g, "").trim();
+
+  if (!connectionString) {
+    throw new Error("[ForShare 錯誤] 找不到資料庫連線字串 (DATABASE_URL)。請檢查 Vercel 環境變數。");
   }
 
-  // 暫時移除 Neon Serverless Adapter，直接使用標準 Prisma 連線
-  // 這可以幫助我們釐清到底是 Neon Adapter 的問題，還是環境變數的問題
-  return new PrismaClient({ log: ["error"] });
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaNeon(pool);
+  
+  return new PrismaClient({ adapter, log: ["error"] });
 }
 
 export const prisma = new Proxy({} as PrismaClient, {
