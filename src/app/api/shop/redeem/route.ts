@@ -70,16 +70,21 @@ export async function POST(req: Request) {
       }
     }
 
-    // 產生一組假的虛擬條碼序號
-    const fakeBarcode = "FS" + Math.random().toString(36).substring(2, 10).toUpperCase() + Date.now().toString().slice(-4);
+    // 生成 Idempotency Key (防重複發放)
+    const idempotencyKey = `REDEEM-${userId}-${itemId}-${Date.now()}`;
+    let withdrawalRequestId = "";
 
-    // 執行交易
+    // === 第一階段 (Phase 1): 預扣點數並建立 PENDING 紀錄 ===
+    // 這樣做是為了防止使用者並發點擊，洗出多張票券
     await prisma.$transaction(async (tx) => {
       // 1. 扣除使用者點數
-      await tx.user.update({
+      const updatedUser = await tx.user.update({
         where: { id: userId },
         data: { points: { decrement: pointsCost } }
       });
+      if (updatedUser.points < 0) {
+        throw new Error("INSUFFICIENT_FUNDS"); // 交易會自動 rollback
+      }
 
       // 2. 建立交易紀錄 (扣款)
       await tx.transactionRecord.create({
@@ -87,32 +92,91 @@ export async function POST(req: Request) {
           userId,
           type: "SPEND_REDEEM",
           amount: -pointsCost,
-          description: `兌換商品：${itemName}`,
+          description: `申請兌換商品：${itemName}`,
         }
       });
 
-      // 3. 建立兌換紀錄 (方便後台結算)
-      await tx.withdrawalRequest.create({
+      // 3. 建立兌換紀錄 (設定為 PENDING)
+      const withdrawal = await tx.withdrawalRequest.create({
         data: {
           userId,
           amount: pointsCost,
-          status: "APPROVED",
+          status: "PENDING",
           notes: itemName
         }
       });
-
-      // 4. 發送虛擬禮物卡到信箱
-      await tx.inboxMessage.create({
-        data: {
-          userId,
-          title: `禮物：${itemName}`,
-          content: `恭喜您成功兌換「${itemName}」！憑下方條碼即可至指定超商刷讀使用。感謝您對 ForShare 平台知識共享的貢獻！`,
-          barcode: fakeBarcode
-        }
-      });
+      withdrawalRequestId = withdrawal.id;
     });
 
-    return NextResponse.json({ message: "兌換成功！已發送至您的信箱。", barcode: fakeBarcode }, { status: 200 });
+    // === 第二階段 (Phase 2): 呼叫外部 B2B 票券商 API ===
+    // 若在此階段伺服器斷線，會有 PENDING 的單子和被扣除的點數，
+    // 可透過後台 Cron Job 或客服系統人工退還/補發。
+    const { issueRealVoucher } = await import("@/lib/providers/voucher");
+    const voucherRes = await issueRealVoucher(itemId, idempotencyKey);
+
+    // === 第三階段 (Phase 3): 處理 API 回應 ===
+    if (voucherRes.success && voucherRes.voucherUrl) {
+      // API 發行成功，寫入真實票券資訊並核發
+      await prisma.$transaction(async (tx) => {
+        // 更新狀態為 APPROVED
+        await tx.withdrawalRequest.update({
+          where: { id: withdrawalRequestId },
+          data: {
+            status: "APPROVED",
+            providerTxId: voucherRes.transactionId,
+            voucherUrl: voucherRes.voucherUrl
+          }
+        });
+
+        // 發送真實禮物卡到信箱
+        await tx.inboxMessage.create({
+          data: {
+            userId,
+            title: `禮物：${itemName}`,
+            content: `恭喜您成功兌換「${itemName}」！請點擊下方按鈕開啟專屬票券網頁，並至門市刷條碼使用。`,
+            barcode: voucherRes.barcode,
+            actionUrl: voucherRes.voucherUrl
+          }
+        });
+      });
+
+      return NextResponse.json({ message: "兌換成功！真實票券已發送至您的信箱。", barcode: voucherRes.barcode }, { status: 200 });
+      
+    } else {
+      // API 發行失敗 (例如廠商餘額不足)，執行退款機制 (Rollback)
+      console.error("[Redeem Error] 第三方 API 發行失敗:", voucherRes.error);
+
+      await prisma.$transaction(async (tx) => {
+        // 退還點數
+        await tx.user.update({
+          where: { id: userId },
+          data: { points: { increment: pointsCost } }
+        });
+
+        // 紀錄退款
+        await tx.transactionRecord.create({
+          data: {
+            userId,
+            type: "REFUND_REDEEM",
+            amount: pointsCost,
+            description: `兌換失敗退款：${itemName}`,
+          }
+        });
+
+        // 更新狀態為 REJECTED
+        await tx.withdrawalRequest.update({
+          where: { id: withdrawalRequestId },
+          data: {
+            status: "REJECTED",
+            notes: `發券失敗自動退回：${voucherRes.error}`
+          }
+        });
+        
+        // 也可以發一封信通知用戶失敗並退款
+      });
+
+      return NextResponse.json({ error: "發行票券失敗，點數已安全退還至您的帳戶，請稍後再試。" }, { status: 500 });
+    }
 
   } catch (error) {
     console.error("Redeem error:", error);

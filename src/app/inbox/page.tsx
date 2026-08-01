@@ -74,7 +74,7 @@ export default async function InboxPage() {
                   {msg.content}
                 </p>
                 
-                {msg.barcode && (
+                {msg.barcode && !msg.actionUrl && (
                   <div className="mt-4 p-6 bg-white border border-border/50 rounded-xl flex flex-col items-center justify-center gap-3 w-fit mx-auto shadow-inner">
                     <div className="text-sm font-bold text-slate-500 mb-1">請向店員出示此條碼</div>
                     {/* 使用開源的 bwip-js API 產生條碼圖片，完全免費且快速 */}
@@ -85,6 +85,22 @@ export default async function InboxPage() {
                     />
                     <div className="mt-2 px-3 py-1 bg-slate-100 rounded text-xs font-mono text-slate-600 font-bold tracking-widest">
                       序號: {msg.barcode}
+                    </div>
+                  </div>
+                )}
+
+                {msg.actionUrl && (
+                  <div className="mt-6 flex flex-col items-center">
+                    <a 
+                      href={msg.actionUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-dark transition-transform hover:scale-[1.02] flex items-center gap-2"
+                    >
+                      <span className="text-xl">🎟️</span> 點擊開啟真實專屬票券 (條碼)
+                    </a>
+                    <div className="mt-3 text-xs text-text-tertiary">
+                      交易序號參考: {msg.barcode} (請以票券網頁內實際條碼為準)
                     </div>
                   </div>
                 )}
