@@ -6,7 +6,7 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient(): PrismaClient {
   /* eslint-disable @typescript-eslint/no-require-imports */
-  const { Pool, neonConfig } = require("@neondatabase/serverless");
+  const { neonConfig } = require("@neondatabase/serverless");
   const { PrismaNeon } = require("@prisma/adapter-neon");
   const ws = require("ws");
   /* eslint-enable @typescript-eslint/no-require-imports */
@@ -20,8 +20,8 @@ function createPrismaClient(): PrismaClient {
     throw new Error("[ForShare 錯誤] 找不到資料庫連線字串 (DATABASE_URL)。請檢查 Vercel 環境變數。");
   }
 
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaNeon(pool);
+  // 最新版的 PrismaNeon 接收的是 PoolConfig 物件，而不是 Pool 實體！
+  const adapter = new PrismaNeon({ connectionString });
   
   return new PrismaClient({ adapter, log: ["error"] });
 }
