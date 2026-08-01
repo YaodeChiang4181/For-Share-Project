@@ -104,7 +104,9 @@ export default function ShopPage() {
           <div className="text-center sm:text-right">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background border border-border mb-3">
               <span className="text-sm font-semibold text-text-secondary">會員狀態：</span>
-              {role === "VIP" ? (
+              {role === "ADMIN" ? (
+                <span className="text-sm font-extrabold text-error">🛡️ 管理員 (無兌換上限)</span>
+              ) : role === "VIP" || role === "SHARE_VIP" ? (
                 <span className="text-sm font-extrabold text-amber-500">💎 Share 會員 (無兌換上限)</span>
               ) : (
                 <span className="text-sm font-bold text-slate-500">一般會員 (每月限額 {50 * exchangeRate} 點)</span>

@@ -71,13 +71,23 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {isLoggedIn ? (
               <div className="flex items-center gap-4">
-                <Link
-                  href="/upload"
-                  className="px-4 py-2 rounded-full text-sm font-semibold text-white bg-primary hover:bg-primary-dark shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2"
-                >
-                  <span>📤</span>
-                  <span>上傳筆記</span>
-                </Link>
+                {(session.user as any)?.role === "ADMIN" ? (
+                  <Link
+                    href="/admin"
+                    className="px-4 py-2 rounded-full text-sm font-semibold text-white bg-error hover:bg-red-600 shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2"
+                  >
+                    <span>🛡️</span>
+                    <span>管理後台</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href="/upload"
+                    className="px-4 py-2 rounded-full text-sm font-semibold text-white bg-primary hover:bg-primary-dark shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2"
+                  >
+                    <span>📤</span>
+                    <span>上傳筆記</span>
+                  </Link>
+                )}
                 <div className="relative">
                   <button
                   onClick={(e) => {
@@ -112,12 +122,21 @@ export default function Navbar() {
                     >
                       📊 個人中心
                     </Link>
-                    <Link
-                      href="/upload"
-                      className="block px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-background transition-colors"
-                    >
-                      📤 上傳筆記
-                    </Link>
+                    {(session.user as any)?.role === "ADMIN" ? (
+                      <Link
+                        href="/admin"
+                        className="block px-4 py-2.5 text-sm font-bold text-error hover:bg-error/5 transition-colors"
+                      >
+                        🛡️ 營運管理後台
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/upload"
+                        className="block px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-background transition-colors"
+                      >
+                        📤 上傳筆記
+                      </Link>
+                    )}
                     <div className="border-t border-border my-1" />
                     <button
                       onClick={() => signOut({ callbackUrl: "/" })}
@@ -199,6 +218,15 @@ export default function Navbar() {
                 >
                   📊 個人中心
                 </Link>
+                {(session.user as any)?.role === "ADMIN" && (
+                  <Link
+                    href="/admin"
+                    className="px-4 py-3 rounded-lg text-sm font-bold text-error hover:bg-surface-elevated transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    🛡️ 營運管理後台
+                  </Link>
+                )}
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
                   className="px-4 py-3 rounded-lg text-sm font-medium text-left text-error hover:bg-error/5 transition-colors"
