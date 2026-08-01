@@ -16,10 +16,19 @@ function createPrismaClient() {
   // 移除使用者在 Vercel 貼上時可能不小心帶入的雙引號或單引號
   connectionString = connectionString.replace(/^["']|["']$/g, "").trim();
 
-  // 檢查是否為無效字串 (例如真的被存成 "undefined" 字串)
-  if (!connectionString || connectionString === "undefined" || connectionString === "null" || !connectionString.startsWith("postgres")) {
-    console.error("無效的資料庫連線字串 (Invalid DATABASE_URL):", connectionString);
-    return new PrismaClient({ log: ["error"] });
+  // 1. 檢查是否完全為空
+  if (!connectionString) {
+    throw new Error("🚨 系統找不到資料庫連線網址！請到 Vercel 的 Environment Variables 設定 DATABASE_URL");
+  }
+
+  // 2. 檢查開頭是否正確
+  if (!connectionString.startsWith("postgres")) {
+    throw new Error(`🚨 DATABASE_URL 格式錯誤！您的網址必須以 postgres 開頭。您目前設定的是: ${connectionString.substring(0, 15)}...`);
+  }
+
+  // 3. 檢查長度是否太短 (避免使用者只貼了 postgresql://)
+  if (connectionString.length < 30) {
+    throw new Error(`🚨 DATABASE_URL 太短了！您可能沒有貼完整。請確認有包含密碼與 neondb。`);
   }
 
   try {
@@ -27,9 +36,9 @@ function createPrismaClient() {
     const pool = new Pool({ connectionString });
     const adapter = new PrismaNeon(pool);
     return new PrismaClient({ adapter, log: ["error"] });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Prisma init error:", err);
-    return new PrismaClient({ log: ["error"] });
+    throw new Error(`🚨 資料庫連線字串解析失敗，請確保您貼上的 DATABASE_URL 是完整且正確的。詳細錯誤: ${err.message}`);
   }
 }
 
