@@ -6,12 +6,6 @@ const nextConfig: NextConfig = {
     "likewise-alan-alberta-bryant.trycloudflare.com",
     "small-snails-wear.loca.lt"
   ],
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  }
 };
 
 export default nextConfig;

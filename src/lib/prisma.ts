@@ -1,57 +1,47 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
 
-neonConfig.webSocketConstructor = ws;
+// =============================================================================
+// Prisma Client - Lazy Initialization via Proxy
+// =============================================================================
+// 所有 Neon/WebSocket 相關的 import 都使用 require() 延遲載入。
+// 這樣 Vercel 在 Build 階段（npm run build）就不會因為找不到 DATABASE_URL 而崩潰。
+// =============================================================================
 
 const globalForPrisma = globalThis as unknown as {
   _prisma: PrismaClient | undefined;
 };
 
-function createPrismaClient() {
-  // Trim to remove any accidental trailing newlines from Vercel env vars
+function createPrismaClient(): PrismaClient {
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  // 動態 require 避免 build 階段載入這些模組
+  const { Pool, neonConfig } = require("@neondatabase/serverless");
+  const { PrismaNeon } = require("@prisma/adapter-neon");
+  const ws = require("ws");
+  /* eslint-enable @typescript-eslint/no-require-imports */
+
+  neonConfig.webSocketConstructor = ws;
+
   let connectionString = (process.env.DATABASE_URL || process.env.POSTGRES_URL || "").trim();
 
   // 移除使用者在 Vercel 貼上時可能不小心帶入的雙引號或單引號
   connectionString = connectionString.replace(/^["']|["']$/g, "").trim();
 
-  // 1. 檢查是否完全為空
-  if (!connectionString) {
-    throw new Error("🚨 系統找不到資料庫連線網址！請到 Vercel 的 Environment Variables 設定 DATABASE_URL");
+  if (!connectionString || !connectionString.startsWith("postgres") || connectionString.length < 30) {
+    console.error("[prisma.ts] ❌ DATABASE_URL 無效或未設定:", connectionString || "(空)");
+    return new PrismaClient({ log: ["error"] });
   }
 
-  // 2. 檢查開頭是否正確
-  if (!connectionString.startsWith("postgres")) {
-    throw new Error(`🚨 DATABASE_URL 格式錯誤！您的網址必須以 postgres 開頭。您目前設定的是: ${connectionString.substring(0, 15)}...`);
-  }
-
-  // 3. 檢查長度是否太短 (避免使用者只貼了 postgresql://)
-  if (connectionString.length < 30) {
-    throw new Error(`🚨 DATABASE_URL 太短了！您可能沒有貼完整。請確認有包含密碼與 neondb。`);
-  }
-
-  try {
-    // 使用 WebSocket Pool (PrismaNeon) 取代 Http，以支援 interactive transactions ($transaction)
-    const pool = new Pool({ connectionString });
-    const adapter = new PrismaNeon(pool);
-    return new PrismaClient({ adapter, log: ["error"] });
-  } catch (err: any) {
-    console.error("Prisma init error:", err);
-    throw new Error(`🚨 資料庫連線字串解析失敗，請確保您貼上的 DATABASE_URL 是完整且正確的。詳細錯誤: ${err.message}`);
-  }
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaNeon(pool);
+  return new PrismaClient({ adapter, log: ["error"] });
 }
 
-// Lazy initialization using Proxy - prevents any DB connection during Next.js build phase
+// Lazy initialization using Proxy - 在 Next.js build 階段不會觸發任何資料庫連線
 export const prisma = new Proxy({} as PrismaClient, {
-  get(target, prop) {
+  get(_target, prop) {
     if (!globalForPrisma._prisma) {
       globalForPrisma._prisma = createPrismaClient();
     }
-    return (globalForPrisma._prisma as any)[prop];
-  }
+    return (globalForPrisma._prisma as unknown as Record<string | symbol, unknown>)[prop];
+  },
 });
-
-if (process.env.NODE_ENV !== "production") {
-  // Safe for development HMR - prevents creating multiple clients during hot reload
-}
