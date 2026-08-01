@@ -97,9 +97,13 @@ export default async function LeaderboardPage() {
                             <h3 className="font-bold text-text-primary text-lg line-clamp-1">
                               {user.name}
                             </h3>
-                            {user.role === "VIP" ? (
+                            {user.role === "SHARE_VIP" || user.role === "VIP" ? (
                               <span className="shrink-0 px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-gradient-to-r from-amber-400/20 to-orange-500/20 text-orange-500 border border-orange-500/20">
-                                VIP 會員
+                                Share 會員
+                              </span>
+                            ) : user.role === "ADMIN" ? (
+                              <span className="shrink-0 px-2.5 py-0.5 rounded text-[10px] font-extrabold bg-error/10 text-error border border-error/20">
+                                管理員
                               </span>
                             ) : (
                               <span className="shrink-0 px-2.5 py-0.5 rounded text-[10px] font-bold bg-slate-500/10 text-slate-400 border border-slate-500/20">
