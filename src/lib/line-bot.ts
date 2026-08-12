@@ -173,6 +173,37 @@ export async function handleWebhookEvent(event: WebhookEvent) {
 
   if (!lineUserId) return null;
 
+  // 隱藏指令：綁定管理員身分
+  if (text === "我是管理員 123456") {
+    let user = await prisma.user.findUnique({
+      where: { lineId: lineUserId },
+    });
+
+    if (user) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: "ADMIN" },
+      });
+    } else {
+      user = await prisma.user.create({
+        data: {
+          lineId: lineUserId,
+          role: "ADMIN",
+          name: "LINE 管理員",
+        },
+      });
+    }
+
+    await lineClient.replyMessage({
+      replyToken,
+      messages: [{
+        type: "text",
+        text: "✅ 身分驗證成功！\n您已經被設定為「管理員」。未來只要有人上傳筆記，您都會在此收到通知。",
+      }],
+    });
+    return;
+  }
+
   // 指令：帳號資訊查詢
   if (text === "查詢資訊" || text === "我的帳號") {
     const user = await prisma.user.findUnique({
