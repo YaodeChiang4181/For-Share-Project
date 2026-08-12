@@ -12,9 +12,9 @@ export const lineClient = new messagingApi.MessagingApiClient(config);
 // Flex Message Generators
 // -----------------------------------------------------------------------------
 
-export function createAccountInfoFlexMessage(user: any) {
+export function createAccountInfoFlexMessage(user: any): any {
   return {
-    type: "flex" as const,
+    type: "flex",
     altText: "您的帳號資訊",
     contents: {
       type: "bubble" as const,
@@ -75,9 +75,9 @@ export function createAccountInfoFlexMessage(user: any) {
   };
 }
 
-export function createSearchCarousel(posts: any[]) {
-  const bubbles = posts.map((post) => ({
-    type: "bubble" as const,
+export function createSearchCarousel(posts: any[]): any {
+  const bubbles: any[] = posts.map((post) => ({
+    type: "bubble",
     body: {
       type: "box",
       layout: "vertical",
@@ -117,7 +117,7 @@ export function createSearchCarousel(posts: any[]) {
 
   // Add the "Explore more" card
   bubbles.push({
-    type: "bubble" as const,
+    type: "bubble",
     body: {
       type: "box",
       layout: "vertical",
@@ -153,10 +153,10 @@ export function createSearchCarousel(posts: any[]) {
   });
 
   return {
-    type: "flex" as const,
+    type: "flex",
     altText: "搜尋結果",
     contents: {
-      type: "carousel" as const,
+      type: "carousel",
       contents: bubbles,
     },
   };
