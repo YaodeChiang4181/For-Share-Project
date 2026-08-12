@@ -18,8 +18,8 @@ function LoginForm() {
 
   useEffect(() => {
     if (errorParam) {
-      if (errorParam === "OAuthAccountNotLinked") {
-        setError("此 LINE 帳號的信箱已經在系統中註冊過，請先使用 Email 密碼登入後，至個人中心進行 LINE 綁定！");
+      if (errorParam === "OAuthAccountNotLinked" || errorParam === "OAuthCallback") {
+        setError("系統偵測到帳號關聯問題。請先使用您的 Email 與密碼登入後，至「個人中心」進行 LINE 綁定！");
       } else {
         setError("LINE 登入發生錯誤 (" + errorParam + ")");
       }
