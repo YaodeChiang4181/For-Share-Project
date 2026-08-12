@@ -2,9 +2,16 @@ import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import LineProvider from "next-auth/providers/line";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma) as any,
   providers: [
+    LineProvider({
+      clientId: process.env.LINE_CLIENT_ID || "",
+      clientSecret: process.env.LINE_CLIENT_SECRET || "",
+    }),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -56,11 +63,23 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "line") {
+        // 更新 user 中的 lineId
+        if (user?.id) {
+           await prisma.user.update({
+             where: { id: user.id },
+             data: { lineId: account.providerAccountId }
+           });
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as { role: string }).role;
-        token.points = (user as { points: number }).points;
+        token.role = (user as any).role || "FREE";
+        token.points = (user as any).points || 0;
       }
       return token;
     },

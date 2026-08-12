@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import LineBindButton from "@/components/LineBindButton";
 
 export const dynamic = "force-dynamic";
 
@@ -214,6 +215,10 @@ export default async function DashboardPage() {
                   <p className="text-xs text-text-tertiary">兌換超商禮券</p>
                 </div>
               </Link>
+              
+              {/* LINE 綁定按鈕 */}
+              <LineBindButton isLinked={!!user.lineId} />
+              
             </div>
           </div>
 
