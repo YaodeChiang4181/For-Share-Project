@@ -27,7 +27,7 @@
     "react-dom": "19.2.4",
     "ws": "^8.21.0",
     "@line/bot-sdk": "^9.5.0",
-    "@auth/prisma-adapter": "^2.4.2"
+    "@next-auth/prisma-adapter": "^1.0.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

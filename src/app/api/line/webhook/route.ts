@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleWebhookEvent, lineMiddleware } from "@/lib/line-bot";
+import { handleWebhookEvent } from "@/lib/line-bot";
 import { WebhookEvent } from "@line/bot-sdk";
 import crypto from "crypto";
 

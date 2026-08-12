@@ -1,4 +1,4 @@
-import { Client, messagingApi, middleware, WebhookEvent, MessageAPIResponseBase } from "@line/bot-sdk";
+import { messagingApi, WebhookEvent } from "@line/bot-sdk";
 import { prisma } from "@/lib/prisma";
 
 const config = {
@@ -7,7 +7,6 @@ const config = {
 };
 
 export const lineClient = new messagingApi.MessagingApiClient(config);
-export const lineMiddleware = middleware(config);
 
 // -----------------------------------------------------------------------------
 // Flex Message Generators
