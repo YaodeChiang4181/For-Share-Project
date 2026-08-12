@@ -67,10 +67,14 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "line") {
         // 更新 user 中的 lineId
         if (user?.id) {
-           await prisma.user.update({
-             where: { id: user.id },
-             data: { lineId: account.providerAccountId }
-           });
+           try {
+             await prisma.user.update({
+               where: { id: user.id },
+               data: { lineId: account.providerAccountId }
+             });
+           } catch (err) {
+             console.error("LINE ID 綁定失敗", err);
+           }
         }
       }
       return true;

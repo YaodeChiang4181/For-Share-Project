@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 
 function LoginForm() {
   const router = useRouter();
@@ -14,6 +14,17 @@ function LoginForm() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const errorParam = searchParams.get("error");
+
+  useEffect(() => {
+    if (errorParam) {
+      if (errorParam === "OAuthAccountNotLinked") {
+        setError("此 LINE 帳號的信箱已經在系統中註冊過，請先使用 Email 密碼登入後，至個人中心進行 LINE 綁定！");
+      } else {
+        setError("LINE 登入發生錯誤 (" + errorParam + ")");
+      }
+    }
+  }, [errorParam]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
