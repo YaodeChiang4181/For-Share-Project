@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -225,6 +226,26 @@ export default function RegisterPage() {
               )}
             </button>
           </form>
+
+          {/* Third-party Login */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-surface text-text-tertiary">或使用其他方式</span>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => signIn("line", { callbackUrl: "/dashboard" })}
+              className="mt-4 w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-[#00B900] text-white hover:bg-[#009900] transition-colors font-medium shadow-lg shadow-[#00B900]/20"
+            >
+              <div className="font-bold text-lg">L</div>
+              使用 LINE 快速註冊/登入
+            </button>
+          </div>
 
           {/* Divider & login link */}
           <div className="mt-6 text-center">
