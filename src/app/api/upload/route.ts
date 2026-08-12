@@ -9,6 +9,7 @@ import path from "path";
 import fs from "fs";
 import { generateSummary, moderateContent } from "@/lib/ai";
 import { extractTextFromPDF } from "@/lib/pdfExtract";
+import { lineClient } from "@/lib/line-bot";
 
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
@@ -146,6 +147,32 @@ export async function POST(req: Request) {
 
       return newPost;
     });
+
+    // --- LINE 推播通知給管理員 ---
+    try {
+      const admins = await prisma.user.findMany({
+        where: {
+          role: "ADMIN",
+          lineId: { not: null },
+        }
+      });
+      
+      if (admins.length > 0) {
+        const uploaderName = session.user.name || "某位使用者";
+        const messageText = `📢 [新筆記上傳通知]\n\n使用者 ${uploaderName} 剛剛上傳了一份新筆記：\n「${title}」\n\n請前往後台查看審核。`;
+        
+        await Promise.allSettled(
+          admins.map(admin => 
+            lineClient.pushMessage({
+              to: admin.lineId!,
+              messages: [{ type: "text", text: messageText }]
+            })
+          )
+        );
+      }
+    } catch (pushErr) {
+      console.error("Failed to push message to admins:", pushErr);
+    }
 
     return NextResponse.json(
       { message: "上傳成功", post },
