@@ -51,7 +51,7 @@ export function createAccountInfoFlexMessage(user: any): any {
             layout: "horizontal",
             contents: [
               { type: "text", text: "身分", color: "#a1a1aa", size: "sm", flex: 1 },
-              { type: "text", text: user.role === "SHARE_VIP" ? "VIP 會員" : "一般會員", color: "#ffffff", size: "sm", flex: 2, weight: "bold" },
+              { type: "text", text: user.role === "SHARE_VIP" ? "VIP 會員" : (user.role === "ADMIN" ? "管理員" : "一般會員"), color: "#3f3f46", size: "sm", flex: 2, weight: "bold" },
             ],
             margin: "md",
           },
