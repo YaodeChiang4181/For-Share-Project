@@ -341,7 +341,7 @@ export async function handleWebhookEvent(event: WebhookEvent) {
             where: { role: "ADMIN", lineId: { not: null } }
           });
           if (admins.length > 0) {
-            const messageText = `📢 [新筆記上傳通知]\n\n使用者 ${user.name || "某位使用者"} 剛剛透過 LINE 上傳了一份新筆記：\n「${session.title}」\n\n請前往後台查看審核。`;
+            const messageText = `📢 [新筆記上傳通知]\n\n使用者 ${user.name || "某位使用者"} 剛剛透過 LINE 上傳了一份新筆記：\n「${session.title}」\n\n請前往後台查看審核：\n${process.env.NEXTAUTH_URL}/admin`;
             await Promise.allSettled(
               admins.map(admin => 
                 lineClient.pushMessage({

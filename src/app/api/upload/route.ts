@@ -159,7 +159,7 @@ export async function POST(req: Request) {
       
       if (admins.length > 0) {
         const uploaderName = session.user.name || "某位使用者";
-        const messageText = `📢 [新筆記上傳通知]\n\n使用者 ${uploaderName} 剛剛上傳了一份新筆記：\n「${title}」\n\n請前往後台查看審核。`;
+        const messageText = `📢 [新筆記上傳通知]\n\n使用者 ${uploaderName} 剛剛上傳了一份新筆記：\n「${title}」\n\n請前往後台查看審核：\n${process.env.NEXTAUTH_URL}/admin`;
         
         await Promise.allSettled(
           admins.map(admin => 
