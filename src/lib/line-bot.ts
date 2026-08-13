@@ -119,7 +119,7 @@ export function createSearchCarousel(posts: any[]): any {
           action: {
             type: "uri",
             label: "查看筆記",
-            uri: `${process.env.NEXTAUTH_URL}/posts/${post.id}`,
+            uri: `${process.env.NEXTAUTH_URL}/explore/${post.id}`,
           },
         },
       ],
