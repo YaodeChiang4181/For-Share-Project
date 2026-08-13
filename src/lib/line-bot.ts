@@ -226,9 +226,56 @@ export async function handleWebhookEvent(event: WebhookEvent) {
     return;
   }
 
+  // 若使用者觸發查詢筆記
+  if (isText && text === "查詢") {
+    await prisma.lineUploadSession.upsert({
+      where: { lineId: lineUserId },
+      update: { step: "WAITING_SEARCH_KEYWORD", title: null, category: null, content: null },
+      create: { lineId: lineUserId, step: "WAITING_SEARCH_KEYWORD" }
+    });
+
+    await lineClient.replyMessage({
+      replyToken,
+      messages: [{ type: "text", text: "🔍 請輸入您想查詢的「關鍵字」：\n(隨時可輸入「取消」來退出查詢)" }]
+    });
+    return;
+  }
+
   // 處理狀態機邏輯
   if (session) {
     if (isText) {
+      if (session.step === "WAITING_SEARCH_KEYWORD") {
+        const keyword = text.trim();
+        
+        // 清除 session
+        await prisma.lineUploadSession.delete({ where: { id: session.id } });
+        
+        // 查詢最近符合的貼文 (取前 5 筆)
+        const posts = await prisma.post.findMany({
+          where: {
+            title: { contains: keyword, mode: "insensitive" },
+            status: "ACTIVE",
+          },
+          take: 5,
+          orderBy: { createdAt: "desc" },
+        });
+
+        if (posts.length === 0) {
+          await lineClient.replyMessage({
+            replyToken,
+            messages: [{ type: "text", text: `找不到關於「${keyword}」的筆記，請試試其他關鍵字，或前往網站查詢！` }],
+          });
+          return;
+        }
+
+        const carousel = createSearchCarousel(posts);
+        await lineClient.replyMessage({
+          replyToken,
+          messages: [carousel],
+        });
+        return;
+      }
+
       if (session.step === "WAITING_TITLE") {
         await prisma.lineUploadSession.update({
           where: { id: session.id },
@@ -431,61 +478,12 @@ export async function handleWebhookEvent(event: WebhookEvent) {
     return;
   }
 
-  // 指令：內部探索 (模擬搜尋)
-  if (text.startsWith("搜尋 ") || text.startsWith("找 ")) {
-    const keyword = text.replace(/^(搜尋|找)\s*/, "").trim();
-    if (!keyword) {
-      await lineClient.replyMessage({
-        replyToken,
-        messages: [{ type: "text", text: "請輸入要搜尋的關鍵字。例如：搜尋 微積分" }],
-      });
-      return;
-    }
-
-    // 查詢最近符合的貼文 (取前 5 筆)
-    const posts = await prisma.post.findMany({
-      where: {
-        title: { contains: keyword, mode: "insensitive" },
-        status: "ACTIVE",
-      },
-      take: 5,
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (posts.length === 0) {
-      await lineClient.replyMessage({
-        replyToken,
-        messages: [{ type: "text", text: `找不到關於「${keyword}」的筆記，請試試其他關鍵字，或前往網站搜尋！` }],
-      });
-      return;
-    }
-
-    const carousel = createSearchCarousel(posts);
-    await lineClient.replyMessage({
-      replyToken,
-      messages: [carousel],
-    });
-    return;
-  }
-
-  // 指令：上傳筆記引導
-  if (text === "上傳筆記") {
-    await lineClient.replyMessage({
-      replyToken,
-      messages: [{
-        type: "text",
-        text: "點擊下方連結前往網站上傳您的筆記，賺取積分！\n\n" + `${process.env.NEXTAUTH_URL}/upload`
-      }],
-    });
-    return;
-  }
-
   // 預設回覆
   await lineClient.replyMessage({
     replyToken,
     messages: [{
       type: "text",
-      text: "歡迎來到 For Share！\n👉 輸入「查詢資訊」查看點數\n👉 輸入「搜尋 [關鍵字]」尋找筆記\n👉 輸入「上傳筆記」取得上傳連結",
+      text: "歡迎來到 For Share！\n👉 輸入「查詢資訊」查看點數\n👉 輸入「查詢」尋找筆記\n👉 輸入「上傳筆記」開始上傳",
     }],
   });
 }
