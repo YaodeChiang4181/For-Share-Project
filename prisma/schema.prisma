@@ -313,3 +313,20 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+// -----------------------------------------------------------------------------
+// LINE 機器人上傳暫存系統 (LINE Bot Conversational Upload)
+// -----------------------------------------------------------------------------
+
+model LineUploadSession {
+  id        String   @id @default(cuid())
+  lineId    String   @unique
+  step      String   // WAITING_TITLE, WAITING_CATEGORY, WAITING_CONTENT, WAITING_FILE
+  
+  title     String?
+  category  String?
+  content   String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
