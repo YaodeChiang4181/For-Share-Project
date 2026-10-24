@@ -31,10 +31,37 @@ function cleanNoteText(text: string | null | undefined): string {
 
 export default function ClientPostViewer({ post, currentUserId, totalTips = 0, tipCount = 0 }: PostProps) {
   const router = useRouter();
+  const [content, setContent] = useState(post.content);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [regenMsg, setRegenMsg] = useState("");
   const [showTipModal, setShowTipModal] = useState(false);
   const [tipAmount, setTipAmount] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const handleRegenerateSummary = async () => {
+    setIsRegenerating(true);
+    setRegenMsg("[ AI 輪迴機制啟動 ] 正在依序嘗試備援模型中...");
+    try {
+      const res = await fetch("/api/post/regenerate-summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: post.id }),
+      });
+      const data = await res.json();
+      if (res.ok && data.content) {
+        setContent(data.content);
+        setRegenMsg("[ 提煉完成 ] AI 摘要已成功更新！");
+        setTimeout(() => setRegenMsg(""), 6000);
+      } else {
+        setRegenMsg(`[ 錯誤 ] ${data.error || "提煉失敗，請稍後再試"}`);
+      }
+    } catch {
+      setRegenMsg("[ 錯誤 ] 連線異常，請稍候重試");
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
 
   // ============ 檢舉 Modal ============
   const [showReportModal, setShowReportModal] = useState(false);
@@ -315,9 +342,30 @@ export default function ClientPostViewer({ post, currentUserId, totalTips = 0, t
               </div>
             </div>
 
+            {/* AI 摘要重試區塊 (僅作者或發生錯誤時提供輪迴發送嘗試) */}
+            {(content.includes("生成摘要時發生錯誤") || isOwnPost) && (
+              <div className="mb-8 p-4 rounded-xs bg-surface-muted border border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-mono">
+                <div>
+                  <span className="text-text-primary font-bold">[ AI 智慧提煉 // 多模型備援機制 ]</span>
+                  <p className="text-[11px] text-text-secondary mt-1">
+                    {regenMsg || (content.includes("生成摘要時發生錯誤")
+                      ? "偵測到本篇摘要先前生成中斷，可透過備援輪迴機制重新提煉。"
+                      : "作者專屬工具：可透過多模型降級機制重新產生精煉摘要。")}
+                  </p>
+                </div>
+                <button
+                  onClick={handleRegenerateSummary}
+                  disabled={isRegenerating}
+                  className="shrink-0 px-4 py-2 rounded-xs bg-primary text-white hover:bg-primary-light transition-colors disabled:opacity-50 font-bold"
+                >
+                  {isRegenerating ? "[ 備援模型輪迴嘗試中... ]" : "[ 嘗試 AI 輪迴重新提煉 → ]"}
+                </button>
+              </div>
+            )}
+
             <div className="prose max-w-none mb-10">
               <p className="text-text-secondary leading-relaxed whitespace-pre-wrap text-sm">
-                {cleanNoteText(post.content)}
+                {cleanNoteText(content)}
               </p>
             </div>
 

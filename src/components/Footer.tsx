@@ -16,8 +16,8 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-xs text-text-secondary leading-relaxed">
-              打破直屬制度壁壘，讓校園筆記與知識不再沉睡。<br />
-              每一份整理與分享，皆具實質價值。
+              打破直屬制度壁壘，讓筆記與知識不再沉睡<br />
+              每一份整理與分享，皆具實質價值
             </p>
           </div>
 

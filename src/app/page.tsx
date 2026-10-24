@@ -71,9 +71,9 @@ export default function Home() {
 
           {/* Subheadline */}
           <p className="mx-auto max-w-2xl text-base sm:text-lg text-text-secondary leading-relaxed mb-10">
-            ForShare 是專為大專院校學生建立的開放知識共享平台。
+            ForShare 是專為大專院校學生建立的開放知識共享平台
             整理你的課堂精華賺取實質積分，透過同儕標註讓優質筆記脫穎而出，
-            打破私下封閉的直屬制度，實現校園知識扁平化流通。
+            打破私下的直屬制度，實現校園知識扁平化流通
           </p>
 
           {/* Minimalist CTA Buttons */}
