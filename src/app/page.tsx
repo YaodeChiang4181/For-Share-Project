@@ -1,162 +1,192 @@
 import Link from "next/link";
 
-/* ── Removed SVG icons in favor of letter icons ── */
-
-/* ── Feature card data ── */
-const features = [
-  {
-    letter: "U",
-    title: "上傳即獲利",
-    desc: "分享你的筆記與考古題，立即獲得平台積分。知識不再沉睡在硬碟裡。",
-    color: "from-indigo-500 to-purple-500",
-  },
-  {
-    letter: "R",
-    title: "有效迴響機制",
-    desc: "讀者可以用積分打賞優質內容，讓真正有價值的筆記脫穎而出。",
-    color: "from-amber-500 to-orange-500",
-  },
-  {
-    letter: "S",
-    title: "雙層過濾審核",
-    desc: "系統 + 社群雙重把關，確保平台內容品質，杜絕低品質或侵權素材。",
-    color: "from-emerald-500 to-teal-500",
-  },
-  {
-    letter: "M",
-    title: "積分兌換商城",
-    desc: "累積的積分可兌換超商禮券、電子商品卡，讓你的努力獲得實質回報。",
-    color: "from-rose-500 to-pink-500",
-  },
-  {
-    letter: "D",
-    title: "數據驅動營運",
-    desc: "後台即時追蹤活躍度與趨勢，透過視覺化報表為營運決策提供依據。",
-    color: "from-cyan-500 to-blue-500",
-  },
-  {
-    letter: "N",
-    title: "社交裂變邀請",
-    desc: "專屬邀請碼機制，邀請朋友加入雙方都獲得積分，讓平台有機成長。",
-    color: "from-violet-500 to-fuchsia-500",
-  },
-];
-
 /* ── How it works steps ── */
-const steps = [
-  { step: "01", title: "免費註冊", desc: "用 Email 快速建立帳號，或透過朋友的邀請碼加入獲取額外積分。" },
-  { step: "02", title: "上傳分享", desc: "將你的筆記、考古題上傳至平台，系統自動套用結構化排版。" },
-  { step: "03", title: "獲得迴響", desc: "其他同學閱讀後可用積分打賞你的內容，優質筆記獲得更多曝光。" },
-  { step: "04", title: "兌換獎勵", desc: "將累積的積分兌換成超商禮券或電子商品卡，知識真的能變現！" },
+const workflowSteps = [
+  {
+    index: "01",
+    label: "提交上傳",
+    title: "整理課堂脈絡與考古題",
+    desc: "將經由自己消化驗證的講義重點、期中考古詳解數位化，以乾淨結構建立條目。",
+  },
+  {
+    index: "02",
+    label: "同儕驗證",
+    title: "雙層品質標註與多維反饋",
+    desc: "由同修同學與跨校系社群進行客觀標註與評分，杜絕空泛或抄襲素材。",
+  },
+  {
+    index: "03",
+    label: "有效流通",
+    title: "獲取同系或跨院系核心精華",
+    desc: "需要備考的同學即時檢索下載，節省大海撈針的時間，讓知識在同儕間自由流動。",
+  },
+  {
+    index: "04",
+    label: "實質回饋",
+    title: "累積知識積分與兌換權益",
+    desc: "每一次優質分享皆獲取平台積分，可自由兌換超商商品卡或進階權益，讓付出獲得回報。",
+  },
 ];
 
-/* ── Stats ── */
-const stats = [
-  { value: "10K+", label: "活躍學生" },
-  { value: "50K+", label: "筆記資源" },
-  { value: "各大專院校", label: "持續推廣中" },
-  { value: "未知數", label: "好評率" },
-];
+/* ── Verified Note Sheet Mock Data ── */
+const featuredNote = {
+  institution: "國立中央大學",
+  department: "經濟學系",
+  courseType: "大一必修",
+  code: "ECON-101 // DOC-2026-F1",
+  title: "個體經濟學（一）：消費者選擇理論與跨期決策整合",
+  author: "Y.D. Chiang",
+  pages: "14 頁 (PDF)",
+  score: "4.9 / 5.0",
+  feedbackCount: "32 則同儕評價",
+  cost: "20 點積分",
+  highlights: [
+    "邊際替代率（MRS）與預算線切點條件分析之幾何推導",
+    "Slutsky 方程在替代效應與所得效應之分解（112-113 期中高頻考點）",
+    "跨期消費模型下利率變動對儲蓄行為之實質影響判定",
+  ],
+};
 
 export default function Home() {
   return (
-    <>
+    <div className="min-h-screen">
       {/* ═══════════════════════════════════
            HERO SECTION
       ═══════════════════════════════════ */}
-      <section className="relative overflow-hidden pt-28 pb-20 lg:pt-36 lg:pb-28" id="hero">
-        {/* Decorative background blobs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[120px] animate-float" />
-          <div className="absolute top-1/2 -left-40 w-[500px] h-[500px] rounded-full bg-accent/8 blur-[100px] animate-float delay-300" />
-          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-purple-500/8 blur-[100px]" />
-        </div>
-
-        <div className="relative mx-auto max-w-7xl px-6 lg:px-8 text-center">
-          {/* Badge */}
-          <div className="animate-slide-up">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              全新知識共享平台正式上線
+      <section className="pt-32 pb-20 lg:pt-40 lg:pb-28 border-b border-border" id="hero">
+        <div className="mx-auto max-w-5xl px-6 lg:px-8 text-center">
+          {/* Editorial Index Badge */}
+          <div className="mb-8">
+            <span className="inline-block px-3 py-1 text-xs font-mono tracking-widest text-text-tertiary border border-border bg-surface rounded-xs">
+              [ ARCHIVE 2026 // 校園開放筆記索引庫 ]
             </span>
           </div>
 
           {/* Headline */}
-          <h1 className="animate-slide-up delay-100 text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-tight tracking-tight text-text-primary mb-6">
-            打破直屬藩籬
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-text-primary leading-[1.2] mb-8">
+            學長姐沒留下的考古題與重點，
             <br />
-            <span className="gradient-text">讓知識自由流動</span>
+            在線上<span className="highlighter">有系統地找到</span>。
           </h1>
 
           {/* Subheadline */}
-          <p className="animate-slide-up delay-200 mx-auto max-w-2xl text-lg sm:text-xl text-text-secondary leading-relaxed mb-10">
-            ForShare 是專為大學生打造的知識共享平台。上傳筆記與考古題賺取積分，
-            透過「有效迴響」讓優質內容脫穎而出，並將積分兌換為實質獎勵。
+          <p className="mx-auto max-w-2xl text-base sm:text-lg text-text-secondary leading-relaxed mb-10">
+            ForShare 是專為大專院校學生建立的開放知識共享平台。
+            整理你的課堂精華賺取實質積分，透過同儕標註讓優質筆記脫穎而出，
+            打破私下封閉的直屬制度，實現校園知識扁平化流通。
           </p>
 
-          {/* CTA Buttons */}
-          <div className="animate-slide-up delay-300 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/register"
-              id="hero-cta-register"
-              className="px-8 py-4 rounded-full text-base font-semibold text-white bg-primary hover:bg-primary-dark shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all hover:scale-[1.03] active:scale-[0.98]"
-            >
-              立即免費加入 →
-            </Link>
+          {/* Minimalist CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3.5 justify-center items-center">
             <Link
               href="/explore"
               id="hero-cta-explore"
-              className="px-8 py-4 rounded-full text-base font-semibold text-text-primary bg-surface border border-border hover:border-primary/40 hover:bg-surface-elevated shadow-sm transition-all hover:scale-[1.03] active:scale-[0.98]"
+              className="w-full sm:w-auto px-7 py-3 rounded-md text-sm font-semibold text-text-inverse bg-primary hover:bg-primary-light transition-colors"
             >
-              探索知識庫
+              檢索開放筆記庫 →
+            </Link>
+            <Link
+              href="/register"
+              id="hero-cta-register"
+              className="w-full sm:w-auto px-7 py-3 rounded-md text-sm font-semibold text-text-primary bg-surface border border-border hover:border-text-primary transition-colors"
+            >
+              免費註冊帳號
             </Link>
           </div>
 
-          {/* Stats Bar */}
-          <div className="animate-slide-up delay-500 mt-16 mx-auto max-w-3xl grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl lg:text-4xl font-extrabold gradient-text mb-1">{stat.value}</div>
-                <div className="text-sm text-text-tertiary font-medium">{stat.label}</div>
+          {/* Institutional Note Preview Sheet (Tangible Artifact) */}
+          <div className="mt-16 mx-auto max-w-3xl text-left">
+            <div className="paper-card p-7 sm:p-9 bg-surface">
+              {/* Document Header */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-border text-xs text-text-tertiary font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-accent inline-block" />
+                  <span className="text-text-primary font-medium">{featuredNote.institution}</span>
+                  <span>/</span>
+                  <span>{featuredNote.department}</span>
+                  <span>/</span>
+                  <span className="px-1.5 py-0.5 rounded-xs bg-surface-muted text-text-secondary">
+                    {featuredNote.courseType}
+                  </span>
+                </div>
+                <span>{featuredNote.code}</span>
               </div>
-            ))}
+
+              {/* Document Title & Highlights */}
+              <div className="py-6">
+                <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-4 leading-snug">
+                  {featuredNote.title}
+                </h3>
+                <div className="space-y-2.5">
+                  {featuredNote.highlights.map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-2.5 text-sm text-text-secondary leading-relaxed">
+                      <span className="text-xs font-mono text-text-tertiary mt-1">[{idx + 1}]</span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Document Footer Metadata (Zero Emoji) */}
+              <div className="pt-5 border-t border-border flex flex-wrap items-center justify-between gap-4 text-xs text-text-tertiary">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span>貢獻者：{featuredNote.author}</span>
+                  <span>·</span>
+                  <span>規格：{featuredNote.pages}</span>
+                  <span>·</span>
+                  <span className="text-text-secondary font-medium">評分：{featuredNote.score} ({featuredNote.feedbackCount})</span>
+                </div>
+                <div className="flex items-center gap-2 font-mono">
+                  <span className="px-2 py-0.5 rounded-xs bg-surface-muted text-text-primary font-medium">
+                    {featuredNote.cost}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-center text-xs text-text-tertiary font-mono">
+              [ 示範文件：真實收錄之期中考整理結構 ]
+            </p>
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════
-           FEATURES SECTION
+           HOW IT WORKS SECTION (EDITORIAL LIST)
       ═══════════════════════════════════ */}
-      <section className="py-20 lg:py-28 bg-surface" id="features">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold bg-accent/10 text-accent border border-accent/20 mb-4">
-              核心功能
+      <section className="py-20 lg:py-28 border-b border-border bg-surface" id="how-it-works">
+        <div className="mx-auto max-w-5xl px-6 lg:px-8">
+          <div className="mb-14">
+            <span className="text-xs font-mono tracking-wider text-text-tertiary uppercase block mb-2">
+              [ 01 // WORKFLOW ]
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-text-primary mb-4">
-              為你量身打造的<span className="gradient-text">知識生態系</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary">
+              校園知識如何透過平台循環？
             </h2>
-            <p className="mx-auto max-w-2xl text-text-secondary text-lg">
-              從上傳到變現，ForShare 為你搭建完整的知識價值鏈。
+            <p className="mt-2 text-sm text-text-secondary">
+              將過去沉睡在個人電腦的零散筆記，轉化為具備長效價值的校園資產。
             </p>
           </div>
 
-          {/* Feature Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((f, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+            {workflowSteps.map((step) => (
               <div
-                key={f.title}
-                id={`feature-${i}`}
-                className="group relative p-6 rounded-2xl bg-background border border-border hover:border-primary/30 transition-all hover:shadow-lg hover:-translate-y-1"
-                style={{ transitionDuration: "var(--transition-base)" }}
+                key={step.index}
+                className="p-6 rounded-md border border-border bg-background hover:border-text-secondary/40 transition-colors"
               >
-                {/* Icon */}
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center text-white mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
-                  <span className="font-bold text-xl">{f.letter}</span>
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
+                  <span className="text-xs font-mono font-bold text-text-primary">
+                    INDEX // {step.index}
+                  </span>
+                  <span className="text-xs font-mono text-text-tertiary">
+                    {step.label}
+                  </span>
                 </div>
-                <h3 className="text-lg font-bold text-text-primary mb-2">{f.title}</h3>
-                <p className="text-sm text-text-secondary leading-relaxed">{f.desc}</p>
+                <h3 className="text-base font-bold text-text-primary mb-2">
+                  {step.title}
+                </h3>
+                <p className="text-sm text-text-secondary leading-relaxed">
+                  {step.desc}
+                </p>
               </div>
             ))}
           </div>
@@ -164,116 +194,94 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════
-           HOW IT WORKS SECTION
+           MEMBERSHIP COMPARISON (MINIMALIST)
       ═══════════════════════════════════ */}
-      <section className="py-20 lg:py-28" id="how-it-works">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold bg-success/10 text-success border border-success/20 mb-4">
-              簡單四步驟
+      <section className="py-20 lg:py-28 border-b border-border" id="membership">
+        <div className="mx-auto max-w-4xl px-6 lg:px-8">
+          <div className="mb-14 text-center">
+            <span className="text-xs font-mono tracking-wider text-text-tertiary uppercase block mb-2">
+              [ 02 // ACCESS TIERS ]
             </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-text-primary mb-4">
-              如何開始你的<span className="gradient-text">知識變現</span>之旅？
+            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary">
+              權限方案與使用機制
             </h2>
+            <p className="mt-2 text-sm text-text-secondary">
+              提供彈性透明的會員規範，所有註冊用戶皆享有基本閱覽與分享權利。
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {steps.map((s, i) => (
-              <div key={s.step} id={`step-${i}`} className="relative text-center group">
-                {/* Connector line (hidden on last item) */}
-                {i < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-8 left-[60%] w-full h-[2px] bg-gradient-to-r from-primary/40 to-transparent" />
-                )}
-                {/* Step number */}
-                <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center mb-5 group-hover:bg-primary group-hover:border-primary transition-all"
-                  style={{ transitionDuration: "var(--transition-base)" }}
-                >
-                  <span className="text-xl font-extrabold text-primary group-hover:text-white transition-colors">{s.step}</span>
-                </div>
-                <h3 className="text-lg font-bold text-text-primary mb-2">{s.title}</h3>
-                <p className="text-sm text-text-secondary leading-relaxed">{s.desc}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Free Tier */}
+            <div className="paper-card p-8 bg-surface">
+              <div className="flex justify-between items-baseline mb-3">
+                <h3 className="text-base font-bold text-text-primary">基礎使用者</h3>
+                <span className="text-xs font-mono text-text-tertiary">FREE TIER</span>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════
-           MEMBERSHIP COMPARISON
-      ═══════════════════════════════════ */}
-      <section className="py-20 lg:py-28 bg-surface" id="membership">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 mb-4">
-              會員方案
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-text-primary mb-4">
-              選擇適合你的<span className="gradient-text">方案</span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Free Plan */}
-            <div className="p-8 rounded-2xl bg-background border border-border hover:border-primary/20 transition-all" id="plan-free">
-              <h3 className="text-sm font-semibold text-text-tertiary uppercase tracking-wider mb-2">免費版</h3>
-              <div className="text-4xl font-extrabold text-text-primary mb-1">
-                $0 <span className="text-base font-medium text-text-tertiary">/ 月</span>
+              <div className="text-3xl font-bold text-text-primary mb-2">
+                $0 <span className="text-xs font-normal text-text-tertiary font-mono">/ 月</span>
               </div>
-              <p className="text-sm text-text-secondary mb-8">立即加入，開始你的共享之旅</p>
-              <ul className="space-y-3 mb-8">
-                {[
-                  "單一關鍵字搜尋",
-                  "每日留言上限 5 則",
-                  "基礎積分兌換",
-                  "上傳筆記獲取積分",
-                  "社群投票參與",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm text-text-secondary">
-                    <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
+              <p className="text-xs text-text-secondary mb-6">
+                適合一般修課、尋找零星參考資料的學生。
+              </p>
+              <ul className="space-y-3 mb-8 text-sm text-text-secondary border-t border-border pt-6">
+                <li className="flex items-start gap-2.5">
+                  <span className="text-text-tertiary font-mono">—</span>
+                  <span>單一關鍵字與系所分類檢索</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-text-tertiary font-mono">—</span>
+                  <span>自由上傳筆記並獲得基礎點數回饋</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-text-tertiary font-mono">—</span>
+                  <span>每日討論區留言上限 5 則</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-text-tertiary font-mono">—</span>
+                  <span>參與筆記評分與同儕審查標籤</span>
+                </li>
               </ul>
               <Link
                 href="/register"
-                className="block w-full py-3 rounded-full text-center text-sm font-semibold border border-border text-text-primary hover:bg-surface-elevated transition-colors"
+                className="block w-full py-2.5 rounded-sm text-center text-xs font-semibold border border-border text-text-primary hover:border-text-primary transition-colors"
               >
-                免費註冊
+                免費加入
               </Link>
             </div>
 
-            {/* Share VIP Plan */}
-            <div className="relative p-8 rounded-2xl bg-background border-2 border-primary shadow-xl shadow-primary/10" id="plan-vip">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white bg-primary">
-                推薦方案
+            {/* Premium Tier */}
+            <div className="paper-card p-8 bg-surface border-2 border-text-primary">
+              <div className="flex justify-between items-baseline mb-3">
+                <h3 className="text-base font-bold text-text-primary">Share 會員</h3>
+                <span className="text-xs font-mono text-text-primary font-bold">[ 推薦 ]</span>
               </div>
-              <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">Share 會員</h3>
-              <div className="text-4xl font-extrabold text-text-primary mb-1">
-                $99 <span className="text-base font-medium text-text-tertiary">/ 月</span>
+              <div className="text-3xl font-bold text-text-primary mb-2">
+                $99 <span className="text-xs font-normal text-text-tertiary font-mono">/ 季</span>
               </div>
-              <p className="text-sm text-text-secondary mb-8">解鎖所有功能，極大化你的收益</p>
-              <ul className="space-y-3 mb-8">
-                {[
-                  "多關鍵字組合搜尋",
-                  "無限制留言討論",
-                  "無上限積分兌換",
-                  "上傳筆記獲取雙倍積分",
-                  "專屬 VIP 徽章",
-                  "優先客服支援",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm text-text-secondary">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
+              <p className="text-xs text-text-secondary mb-6">
+                適合備戰國考、雙主修或重度知識分享者。
+              </p>
+              <ul className="space-y-3 mb-8 text-sm text-text-secondary border-t border-border pt-6">
+                <li className="flex items-start gap-2.5">
+                  <span className="text-text-primary font-mono">+</span>
+                  <span className="font-medium text-text-primary">多條件複合交叉檢索（學年度/教授/題型）</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-text-primary font-mono">+</span>
+                  <span className="font-medium text-text-primary">上傳筆記獲取雙倍積分回饋權重</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-text-primary font-mono">+</span>
+                  <span>無上限討論留言與作者私訊發問</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-text-primary font-mono">+</span>
+                  <span>商城兌換額度上限完全解除</span>
+                </li>
               </ul>
               <Link
                 href="/register"
-                className="block w-full py-3 rounded-full text-center text-sm font-semibold text-white bg-primary hover:bg-primary-dark shadow-lg shadow-primary/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="block w-full py-2.5 rounded-sm text-center text-xs font-semibold text-text-inverse bg-primary hover:bg-primary-light transition-colors"
               >
                 升級 Share 會員
               </Link>
@@ -283,35 +291,39 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════
-           FINAL CTA SECTION
+           FINAL QUIET CALL TO ACTION
       ═══════════════════════════════════ */}
-      <section className="py-20 lg:py-28" id="final-cta">
-        <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
-          <div className="relative p-12 sm:p-16 rounded-3xl gradient-bg overflow-hidden">
-            {/* Decorative circles */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-              <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/10 blur-2xl" />
-              <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-white/10 blur-2xl" />
-            </div>
-
-            <div className="relative">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4">
-                準備好讓知識變現了嗎？
-              </h2>
-              <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
-                加入數千名大學生的行列，把你的筆記轉化為實質獎勵。
-              </p>
+      <section className="py-20 lg:py-24" id="final-cta">
+        <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
+          <div className="p-10 sm:p-14 rounded-md border border-border bg-surface">
+            <span className="text-xs font-mono tracking-wider text-text-tertiary uppercase block mb-3">
+              [ GET STARTED ]
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-text-primary mb-3">
+              建立專屬於你的校園知識資產
+            </h2>
+            <p className="text-sm text-text-secondary max-w-lg mx-auto mb-8 leading-relaxed">
+              將你每學期的付出整理成冊，與全校同學互通有無。
+              現在加入，立即探索已收錄的各系所筆記。
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/register"
                 id="final-cta-button"
-                className="inline-flex px-8 py-4 rounded-full text-base font-bold text-primary bg-white hover:bg-gray-100 shadow-xl transition-all hover:scale-[1.03] active:scale-[0.98]"
+                className="px-6 py-2.5 rounded-sm text-xs font-semibold text-text-inverse bg-primary hover:bg-primary-light transition-colors"
               >
-                立即免費加入 ForShare
+                免費建立帳號 →
+              </Link>
+              <Link
+                href="/explore"
+                className="px-6 py-2.5 rounded-sm text-xs font-semibold text-text-primary border border-border hover:border-text-primary transition-colors"
+              >
+                先去逛逛筆記庫
               </Link>
             </div>
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
