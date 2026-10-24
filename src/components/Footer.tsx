@@ -8,7 +8,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2.5 mb-4" id="footer-logo">
-              <div className="w-6 h-6 rounded-xs bg-primary text-text-inverse flex items-center justify-center font-mono text-[10px] font-bold">
+              <div className="w-6 h-6 rounded-xs bg-primary text-white flex items-center justify-center font-mono text-[10px] font-bold">
                 FS
               </div>
               <span className="text-sm font-bold tracking-tight text-text-primary">

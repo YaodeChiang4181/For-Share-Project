@@ -19,7 +19,7 @@
   --text-primary: #1a1918;
   --text-secondary: #5e5953;
   --text-tertiary: #948e85;
-  --text-inverse: #f9f8f6;
+  --text-inverse: #ffffff;
 
   /* Primary Brand (Solid Carbon Ink) */
   --primary: #1a1918;
@@ -78,6 +78,7 @@
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary: var(--text-tertiary);
+  --color-text-inverse: var(--text-inverse);
   --color-success: var(--success);
   --color-error: var(--error);
   --font-sans: 'Inter', 'Noto Sans TC', system-ui, -apple-system, sans-serif;

@@ -40,7 +40,7 @@ export default function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group" id="nav-logo">
-            <div className="w-7 h-7 rounded-xs bg-primary text-text-inverse flex items-center justify-center font-mono text-xs font-bold">
+            <div className="w-7 h-7 rounded-xs bg-primary text-white flex items-center justify-center font-mono text-xs font-bold">
               FS
             </div>
             <div className="flex items-baseline gap-1.5">
@@ -78,14 +78,14 @@ export default function Navbar() {
                 {(session.user as any)?.role === "ADMIN" ? (
                   <Link
                     href="/admin"
-                    className="px-3 py-1.5 rounded-sm text-xs font-semibold text-text-inverse bg-error hover:opacity-90 transition-opacity"
+                    className="px-3 py-1.5 rounded-sm text-xs font-semibold text-white bg-error hover:opacity-90 transition-opacity"
                   >
                     管理後台
                   </Link>
                 ) : (
                   <Link
                     href="/upload"
-                    className="px-3.5 py-1.5 rounded-sm text-xs font-semibold text-text-inverse bg-primary hover:bg-primary-light transition-colors"
+                    className="px-3.5 py-1.5 rounded-sm text-xs font-semibold text-white bg-primary hover:bg-primary-light transition-colors"
                   >
                     上傳筆記
                   </Link>
@@ -166,7 +166,7 @@ export default function Navbar() {
                 <Link
                   href="/register"
                   id="nav-register"
-                  className="px-4 py-1.5 rounded-sm text-xs font-semibold text-text-inverse bg-primary hover:bg-primary-light transition-colors"
+                  className="px-4 py-1.5 rounded-sm text-xs font-semibold text-white bg-primary hover:bg-primary-light transition-colors"
                 >
                   免費加入
                 </Link>
@@ -258,7 +258,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/register"
-                  className="flex-1 py-2 rounded-sm text-center text-text-inverse bg-primary hover:bg-primary-light transition-colors"
+                  className="flex-1 py-2 rounded-sm text-center text-white bg-primary hover:bg-primary-light transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   免費加入

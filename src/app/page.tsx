@@ -81,7 +81,7 @@ export default function Home() {
             <Link
               href="/explore"
               id="hero-cta-explore"
-              className="w-full sm:w-auto px-7 py-3 rounded-md text-sm font-semibold text-text-inverse bg-primary hover:bg-primary-light transition-colors"
+              className="w-full sm:w-auto px-7 py-3 rounded-md text-sm font-semibold text-white bg-primary hover:bg-primary-light transition-colors"
             >
               檢索開放筆記庫 →
             </Link>
@@ -281,7 +281,7 @@ export default function Home() {
               </ul>
               <Link
                 href="/register"
-                className="block w-full py-2.5 rounded-sm text-center text-xs font-semibold text-text-inverse bg-primary hover:bg-primary-light transition-colors"
+                className="block w-full py-2.5 rounded-sm text-center text-xs font-semibold text-white bg-primary hover:bg-primary-light transition-colors"
               >
                 升級 Share 會員
               </Link>
@@ -310,7 +310,7 @@ export default function Home() {
               <Link
                 href="/register"
                 id="final-cta-button"
-                className="px-6 py-2.5 rounded-sm text-xs font-semibold text-text-inverse bg-primary hover:bg-primary-light transition-colors"
+                className="px-6 py-2.5 rounded-sm text-xs font-semibold text-white bg-primary hover:bg-primary-light transition-colors"
               >
                 免費建立帳號 →
               </Link>
