@@ -93,7 +93,7 @@ export async function POST(req: Request) {
     let finalContent = content;
     if (textToSummarize) {
       const aiSummary = await generateSummary(textToSummarize);
-      finalContent = `> ✨ **AI 摘要懶人包**\n\n${aiSummary}\n\n---\n\n${content}`;
+      finalContent = `> [ 內容要點提煉 ]\n\n${aiSummary}\n\n---\n\n${content}`;
     }
     // ----------------------
 
@@ -159,7 +159,7 @@ export async function POST(req: Request) {
       
       if (admins.length > 0) {
         const uploaderName = session.user.name || "某位使用者";
-        const messageText = `📢 [新筆記上傳通知]\n\n使用者 ${uploaderName} 剛剛上傳了一份新筆記：\n「${title}」\n\n請前往後台查看審核：\n${process.env.NEXTAUTH_URL}/admin`;
+        const messageText = `[ 新筆記上傳通知 ]\n\n使用者 ${uploaderName} 剛剛上傳了一份新筆記：\n「${title}」\n\n請前往後台查看審核：\n${process.env.NEXTAUTH_URL}/admin`;
         
         await Promise.allSettled(
           admins.map(admin => 

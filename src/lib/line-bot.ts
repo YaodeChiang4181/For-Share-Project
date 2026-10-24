@@ -221,7 +221,7 @@ export async function handleWebhookEvent(event: WebhookEvent) {
 
     await lineClient.replyMessage({
       replyToken,
-      messages: [{ type: "text", text: "📝 開始上傳筆記！\n\n請問這份筆記的「標題」是什麼？\n(隨時可輸入「取消」來中斷)" }]
+      messages: [{ type: "text", text: "[ 上傳筆記 ]\n\n請問這份筆記的「標題」是什麼？\n(隨時可輸入「取消」來中斷)" }]
     });
     return;
   }
@@ -236,7 +236,7 @@ export async function handleWebhookEvent(event: WebhookEvent) {
 
     await lineClient.replyMessage({
       replyToken,
-      messages: [{ type: "text", text: "🔍 請輸入您想查詢的「關鍵字」：\n(隨時可輸入「取消」來退出查詢)" }]
+      messages: [{ type: "text", text: "[ 查詢筆記 ]\n\n請輸入您想查詢的「關鍵字」：\n(隨時可輸入「取消」來退出查詢)" }]
     });
     return;
   }
@@ -307,7 +307,7 @@ export async function handleWebhookEvent(event: WebhookEvent) {
         });
         await lineClient.replyMessage({
           replyToken,
-          messages: [{ type: "text", text: "描述已記錄！\n\n🎉 最後一步：請直接將「圖片」或「檔案 (PDF)」傳送至本聊天室！" }]
+          messages: [{ type: "text", text: "描述已記錄。\n\n[ 最後一步 ] 請直接將「圖片」或「檔案 (PDF)」傳送至本聊天室。" }]
         });
         return;
       }
@@ -323,7 +323,7 @@ export async function handleWebhookEvent(event: WebhookEvent) {
       if (session.step === "WAITING_FILE") {
         await lineClient.replyMessage({
           replyToken,
-          messages: [{ type: "text", text: "⏳ 正在幫您上傳處理中，請稍候..." }]
+          messages: [{ type: "text", text: "[ 處理中 ] 正在為您上傳處理中，請稍候..." }]
         });
 
         try {
@@ -388,7 +388,7 @@ export async function handleWebhookEvent(event: WebhookEvent) {
             where: { role: "ADMIN", lineId: { not: null } }
           });
           if (admins.length > 0) {
-            const messageText = `📢 [新筆記上傳通知]\n\n使用者 ${user.name || "某位使用者"} 剛剛透過 LINE 上傳了一份新筆記：\n「${session.title}」\n\n請前往後台查看審核：\n${process.env.NEXTAUTH_URL}/admin`;
+            const messageText = `[ 新筆記上傳通知 ]\n\n使用者 ${user.name || "某位使用者"} 剛剛透過 LINE 上傳了一份新筆記：\n「${session.title}」\n\n請前往後台查看審核：\n${process.env.NEXTAUTH_URL}/admin`;
             await Promise.allSettled(
               admins.map(admin => 
                 lineClient.pushMessage({
@@ -403,14 +403,14 @@ export async function handleWebhookEvent(event: WebhookEvent) {
 
           await lineClient.pushMessage({
             to: lineUserId,
-            messages: [{ type: "text", text: "🎉 上傳成功！您的筆記已經發布至平台上囉！" }]
+            messages: [{ type: "text", text: "[ 上傳成功 ] 您的筆記已經發布至平台上！" }]
           });
           
         } catch (err) {
           console.error("LINE Upload Error:", err);
           await lineClient.pushMessage({
             to: lineUserId,
-            messages: [{ type: "text", text: "❌ 上傳發生錯誤，可能是檔案過大或網路不穩，請稍後再試。" }]
+            messages: [{ type: "text", text: "[ 錯誤 ] 上傳發生錯誤，可能是檔案過大或網路不穩，請稍後再試。" }]
           });
         }
         return;
@@ -447,7 +447,7 @@ export async function handleWebhookEvent(event: WebhookEvent) {
       replyToken,
       messages: [{
         type: "text",
-        text: "✅ 身分驗證成功！\n您已經被設定為「管理員」。未來只要有人上傳筆記，您都會在此收到通知。",
+        text: "[ 驗證成功 ] 身分驗證完成。\n您已經被設定為「管理員」。未來只要有人上傳筆記，您都會在此收到通知。",
       }],
     });
     return;
@@ -483,7 +483,7 @@ export async function handleWebhookEvent(event: WebhookEvent) {
     replyToken,
     messages: [{
       type: "text",
-      text: "歡迎來到 For Share！\n👉 輸入「查詢資訊」查看點數\n👉 輸入「查詢」尋找筆記\n👉 輸入「上傳筆記」開始上傳",
+      text: "歡迎來到 For Share！\n> 輸入「查詢資訊」查看點數\n> 輸入「查詢」尋找筆記\n> 輸入「上傳筆記」開始上傳",
     }],
   });
 }

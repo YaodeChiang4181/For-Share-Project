@@ -80,7 +80,7 @@ function LoginForm() {
           {/* Success message from registration */}
           {registered && (
             <div className="mb-5 p-3 rounded-lg bg-success/10 border border-success/20 text-success text-sm text-center">
-              🎉 註冊成功！請使用你的帳號登入
+              [ 註冊成功 ] 請使用你的帳號登入
             </div>
           )}
 

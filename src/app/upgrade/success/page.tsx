@@ -23,7 +23,7 @@ export default function UpgradeSuccessPage() {
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-background relative overflow-hidden flex items-center justify-center">
       <div className="bg-surface border border-border rounded-3xl p-16 text-center shadow-xl animate-fade-in-up max-w-lg w-full">
-        <div className="text-7xl mb-6 animate-bounce">🎉</div>
+        <div className="font-mono text-xs text-success mb-3">[ UPGRADE SUCCESSFUL // 升級成功 ]</div>
         <h1 className="text-3xl font-extrabold text-text-primary mb-4">付款成功！</h1>
         <p className="text-lg text-text-secondary mb-8">
           感謝您的支持，系統已收到來自綠界金流的確認。您的訂單權益 (VIP 或 儲值積分) 已經自動發放至您的帳戶。

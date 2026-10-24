@@ -119,23 +119,27 @@ export default function UploadPage() {
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
                 <div className="pointer-events-none">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-elevated flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                    {file ? "📄" : "📤"}
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-sm bg-surface border border-border flex items-center justify-center text-xs font-mono">
+                    {file ? (
+                      <span className="font-bold text-text-primary">[ READY ]</span>
+                    ) : (
+                      <span className="text-text-tertiary">[ + FILE ]</span>
+                    )}
                   </div>
                   {file ? (
                     <div>
-                      <p className="text-sm font-medium text-primary">{file.name}</p>
-                      <p className="text-xs text-text-tertiary mt-1">
+                      <p className="text-xs font-medium text-text-primary">{file.name}</p>
+                      <p className="text-[11px] font-mono text-text-tertiary mt-1">
                         {(file.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
                   ) : (
                     <div>
-                      <p className="text-sm font-medium text-text-primary">
+                      <p className="text-xs font-medium text-text-primary">
                         點擊或拖曳檔案至此
                       </p>
-                      <p className="text-xs text-text-tertiary mt-1">
-                        支援 PDF, Word 或圖片檔 (最大 10MB)
+                      <p className="text-[11px] text-text-tertiary mt-1 font-mono">
+                        支援 PDF, Word 或圖片 (最大 10MB)
                       </p>
                     </div>
                   )}
@@ -146,7 +150,7 @@ export default function UploadPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Title */}
               <div className="md:col-span-2">
-                <label htmlFor="title" className="block text-sm font-medium text-text-primary mb-1.5">
+                <label htmlFor="title" className="block text-xs font-medium text-text-primary mb-1.5">
                   標題 <span className="text-error">*</span>
                 </label>
                 <input
@@ -155,14 +159,14 @@ export default function UploadPage() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
+                  className="w-full px-4 py-2.5 rounded-sm bg-surface border border-border text-text-primary placeholder-text-tertiary focus:outline-none focus:border-text-primary transition-all text-xs"
                   placeholder="例如：112學年度 計算機概論期中考筆記"
                 />
               </div>
 
               {/* Tags */}
               <div>
-                <label htmlFor="tags" className="block text-sm font-medium text-text-primary mb-1.5">
+                <label htmlFor="tags" className="block text-xs font-medium text-text-primary mb-1.5">
                   系所與科目 <span className="text-error">*</span>
                 </label>
                 <input
@@ -171,65 +175,55 @@ export default function UploadPage() {
                   required
                   value={formData.tags}
                   onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-background border border-border text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-sm"
+                  className="w-full px-4 py-2.5 rounded-sm bg-surface border border-border text-text-primary placeholder-text-tertiary focus:outline-none focus:border-text-primary transition-all text-xs"
                   placeholder="例如：資管系, 計概 (用逗號分隔)"
                 />
               </div>
 
               {/* Sharing Mode Toggle */}
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                <label className="block text-xs font-medium text-text-primary mb-1.5">
                   分享模式 <span className="text-error">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, isPaid: true })}
-                    className={`relative p-4 rounded-xl border text-left transition-all ${
+                    className={`relative p-3 rounded-sm border text-left transition-all ${
                       formData.isPaid
-                        ? "border-primary bg-primary/5 shadow-sm"
-                        : "border-border bg-background hover:border-primary/30"
+                        ? "border-text-primary bg-surface shadow-sm"
+                        : "border-border bg-surface-muted hover:border-text-primary/50"
                     }`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg">💎</span>
-                      <span className={`font-bold ${formData.isPaid ? "text-primary" : "text-text-primary"}`}>
-                        有償分享
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-xs font-mono font-bold text-text-primary">[ 有償 ]</span>
+                      <span className={`text-xs font-bold ${formData.isPaid ? "text-text-primary" : "text-text-secondary"}`}>
+                        積分分享
                       </span>
                     </div>
-                    <p className="text-xs text-text-secondary">
-                      讀者退出時，需給予至少 1 點評價
+                    <p className="text-[11px] text-text-secondary">
+                      讀者閱畢後可選擇打賞 1~5 點積分
                     </p>
-                    {formData.isPaid && (
-                      <div className="absolute top-4 right-4 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                      </div>
-                    )}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, isPaid: false })}
-                    className={`relative p-4 rounded-xl border text-left transition-all ${
+                    className={`relative p-3 rounded-sm border text-left transition-all ${
                       !formData.isPaid
-                        ? "border-success bg-success/5 shadow-sm"
-                        : "border-border bg-background hover:border-success/30"
+                        ? "border-text-primary bg-surface shadow-sm"
+                        : "border-border bg-surface-muted hover:border-text-primary/50"
                     }`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg">🌱</span>
-                      <span className={`font-bold ${!formData.isPaid ? "text-success" : "text-text-primary"}`}>
-                        無償分享
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-xs font-mono font-bold text-text-secondary">[ 無償 ]</span>
+                      <span className={`text-xs font-bold ${!formData.isPaid ? "text-text-primary" : "text-text-secondary"}`}>
+                        公開共享
                       </span>
                     </div>
-                    <p className="text-xs text-text-secondary">
-                      純粹知識分享，閱讀後不會彈出打賞視窗
+                    <p className="text-[11px] text-text-secondary">
+                      純粹知識開放，自由檢索無須扣點
                     </p>
-                    {!formData.isPaid && (
-                      <div className="absolute top-4 right-4 w-4 h-4 rounded-full bg-success flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                      </div>
-                    )}
                   </button>
                 </div>
               </div>
@@ -275,7 +269,7 @@ export default function UploadPage() {
                 ) : (
                   <>
                     <span>確認發布</span>
-                    <span>✨</span>
+                    <span>→</span>
                   </>
                 )}
               </button>

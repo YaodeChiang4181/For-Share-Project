@@ -87,7 +87,7 @@ export async function POST(req: Request) {
         prisma.inboxMessage.create({
           data: {
             userId: post.authorId,
-            title: "⚠️ 帳號停權通知",
+            title: "[ 帳號停權通知 ]",
             content: `您的筆記「${post.title}」因嚴重違反社群規範已被管理員強制下架，且您的帳號已被停權至 ${banUntil.toLocaleDateString("zh-TW")}。如有疑問請聯繫管理團隊。`,
           },
         }),

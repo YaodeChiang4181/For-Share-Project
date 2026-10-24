@@ -52,39 +52,42 @@ export default function TopupPage() {
       <div className="max-w-3xl mx-auto relative z-10">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold text-text-primary mb-2">💰 儲值積分</h1>
-            <p className="text-text-secondary">使用綠界金流購買積分，立刻兌換喜歡的商品。</p>
+            <span className="text-xs font-mono tracking-wider text-text-tertiary uppercase block mb-1">
+              [ TOPUP // 點數儲值 ]
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-1">儲值積分</h1>
+            <p className="text-xs text-text-secondary">使用綠界金流購買積分，立刻兌換喜歡的商品。</p>
           </div>
-          <Link href="/shop" className="px-4 py-2 bg-surface border border-border rounded-lg text-sm font-semibold hover:bg-background transition-colors shadow-sm">
+          <Link href="/shop" className="px-3.5 py-1.5 bg-surface border border-border rounded-sm text-xs font-semibold hover:border-text-primary transition-colors">
             返回商城
           </Link>
         </div>
 
-        <div className="bg-surface rounded-3xl p-8 border border-border shadow-xl">
-          <h3 className="text-xl font-bold text-text-primary mb-6">選擇儲值方案</h3>
+        <div className="bg-surface rounded-md p-7 border border-border shadow-sm">
+          <h3 className="text-base font-bold text-text-primary mb-4 font-mono">[ 選擇儲值方案 ]</h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             {TOPUP_OPTIONS.map((opt) => (
               <div 
                 key={opt.amount}
                 onClick={() => !isProcessing && setSelectedOption(opt.amount)}
-                className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all ${
+                className={`relative p-5 rounded-sm border cursor-pointer transition-all ${
                   selectedOption === opt.amount 
-                    ? "border-primary bg-primary/5 shadow-md scale-[1.02]" 
-                    : "border-border hover:border-primary/50 hover:bg-surface-hover"
+                    ? "border-text-primary bg-surface shadow-sm" 
+                    : "border-border hover:border-text-primary/40 bg-surface-muted"
                 }`}
               >
                 {opt.bonus > 0 && (
-                  <div className="absolute -top-3 -right-3 bg-error text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm animate-pulse">
-                    額外贈送 {opt.bonus} 點
+                  <div className="absolute -top-2.5 -right-2 bg-error text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded-xs">
+                    + 贈送 {opt.bonus} 點
                   </div>
                 )}
-                <div className="flex justify-between items-center mb-2">
-                  <div className="text-2xl font-black text-text-primary">
-                    {opt.points + opt.bonus} <span className="text-sm font-bold text-text-secondary">點積分</span>
+                <div className="flex justify-between items-center mb-1">
+                  <div className="text-xl font-bold font-mono text-text-primary">
+                    {opt.points + opt.bonus} <span className="text-xs text-text-tertiary">PTS</span>
                   </div>
                 </div>
-                <div className="text-text-tertiary text-sm">
+                <div className="text-text-tertiary text-xs font-mono">
                   NT$ {opt.amount}
                 </div>
               </div>
@@ -92,10 +95,10 @@ export default function TopupPage() {
           </div>
 
           <div className="space-y-4 mb-8">
-            <div className="p-4 bg-background rounded-xl border border-border/50 text-sm text-text-secondary text-center flex flex-col items-center gap-2">
-              <div>本站採用綠界科技 ECPay 第三方金流服務，保障您的交易安全。</div>
-              <div className="flex justify-center gap-3 text-2xl opacity-70">
-                💳 📱 🏦
+            <div className="p-4 bg-surface-muted rounded-sm border border-border text-xs text-text-secondary text-center flex flex-col items-center gap-1.5">
+              <div>本站採用綠界科技 ECPay 第三方金流服務，保障交易安全。</div>
+              <div className="font-mono text-[11px] text-text-tertiary tracking-wider">
+                [ 支援信用卡 / 行動支付 / ATM 轉帳 ]
               </div>
             </div>
           </div>

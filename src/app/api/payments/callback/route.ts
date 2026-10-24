@@ -60,7 +60,7 @@ export async function POST(req: Request) {
           await tx.inboxMessage.create({
             data: {
               userId: order.userId,
-              title: "👑 恭喜升級為 Share 會員！",
+              title: "[ 會員升級成功 ] 歡迎加入 Share VIP",
               content: "感謝您的訂閱！您現在已解鎖無上限兌換點數額度，並且可以使用多關鍵字搜尋等進階功能。在知識共享的路上，ForShare 與您並肩前行！"
             }
           });
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
           await tx.inboxMessage.create({
             data: {
               userId: order.userId,
-              title: "💰 積分儲值成功！",
+              title: "[ 點數儲值成功 ] 積分已入帳",
               content: `您已成功儲值 ${order.pointsToAdd} 點積分！感謝您的支持，祝您兌換愉快。`
             }
           });

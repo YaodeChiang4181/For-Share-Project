@@ -14,6 +14,14 @@ interface PostData {
   author: { name: string | null; image: string | null };
 }
 
+function cleanNoteText(text: string | null | undefined): string {
+  if (!text) return "";
+  return text
+    .replace(/[\U00010000-\U0010ffff]|[\u2600-\u27bf]|[\u2300-\u23ff]|[\u2b50-\u2b55]|[\u203c-\u2049]/gu, "")
+    .replace(/\*\*AI 摘要懶人包\*\*/g, "[ 內容摘要 ]")
+    .trim();
+}
+
 export default function ExploreClient({ posts }: { posts: PostData[] }) {
   const [filteredPosts, setFilteredPosts] = useState<PostData[]>(posts);
   const [searchActive, setSearchActive] = useState(false);
@@ -43,28 +51,30 @@ export default function ExploreClient({ posts }: { posts: PostData[] }) {
           </p>
           <button
             onClick={() => { setSearchActive(false); setFilteredPosts(posts); }}
-            className="text-xs font-medium text-text-tertiary hover:text-primary transition-colors"
+            className="text-xs font-mono text-text-tertiary hover:text-text-primary transition-colors"
           >
-            ✕ 清除搜尋
+            [ 清除檢索條件 ]
           </button>
         </div>
       )}
 
       {displayPosts.length === 0 ? (
-        <div className="bg-surface border border-border rounded-2xl p-12 text-center">
-          <p className="text-5xl mb-4">{searchActive ? "🔍" : "📭"}</p>
-          <h3 className="text-xl font-bold text-text-primary mb-2">
-            {searchActive ? "找不到相關筆記" : "目前還沒有人分享筆記"}
+        <div className="paper-card p-12 text-center bg-surface">
+          <div className="text-xs font-mono text-text-tertiary mb-3">
+            [ {searchActive ? "NO MATCHING NOTES" : "NO ARCHIVED NOTES"} ]
+          </div>
+          <h3 className="text-lg font-bold text-text-primary mb-2">
+            {searchActive ? "找不到相符之筆記" : "目前尚無公開分享的筆記"}
           </h3>
-          <p className="text-text-secondary mb-6">
-            {searchActive ? "試試換個關鍵字？" : "成為第一個分享知識並獲得積分的人吧！"}
+          <p className="text-xs text-text-secondary mb-6">
+            {searchActive ? "請嘗試更換關鍵字進行檢索。" : "成為第一位整理筆記並累積同儕積分的同學！"}
           </p>
           {!searchActive && (
             <Link
               href="/upload"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-xs font-semibold text-white bg-primary hover:bg-primary-light transition-colors"
             >
-              立即上傳
+              立刻上傳筆記 →
             </Link>
           )}
         </div>
@@ -74,39 +84,37 @@ export default function ExploreClient({ posts }: { posts: PostData[] }) {
             <Link
               href={`/explore/${post.id}`}
               key={post.id}
-              className="bg-surface border border-border rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-lg transition-all group flex flex-col"
+              className="paper-card bg-surface overflow-hidden group flex flex-col hover:border-text-primary transition-colors"
             >
-              <div className="h-40 bg-gradient-to-br from-primary/10 to-accent/10 relative p-6 flex flex-col justify-between">
+              <div className="h-32 bg-surface-muted border-b border-border relative p-5 flex flex-col justify-between">
                 <div className="flex justify-between items-start">
-                  <span className={`px-2.5 py-1 rounded-lg bg-white/50 backdrop-blur-sm text-xs font-semibold border ${
-                    post.isPaid ? "text-primary border-primary/20" : "text-success border-success/20"
+                  <span className={`px-2 py-0.5 rounded-xs text-[10px] font-mono font-medium border ${
+                    post.isPaid ? "bg-surface border-border text-text-primary" : "bg-surface border-border text-text-secondary"
                   }`}>
-                    {post.isPaid ? "💎 有償分享" : "🌱 無償分享"}
+                    {post.isPaid ? "[ 有償分享 ]" : "[ 開放共享 ]"}
                   </span>
                 </div>
-                <h3 className="text-lg font-bold text-text-primary line-clamp-2 leading-snug group-hover:text-primary transition-colors">
-                  {post.title}
+                <h3 className="text-base font-bold text-text-primary line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                  {cleanNoteText(post.title)}
                 </h3>
               </div>
               
               <div className="p-5 flex-1 flex flex-col justify-between gap-4">
-                <p className="text-sm text-text-secondary line-clamp-3">
-                  {post.content || "這份筆記沒有提供詳細說明。"}
+                <p className="text-xs text-text-secondary line-clamp-3 leading-relaxed">
+                  {cleanNoteText(post.content) || "這份筆記沒有提供詳細說明。"}
                 </p>
                 
                 <div className="flex items-center justify-between pt-4 border-t border-border mt-auto">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full gradient-bg flex items-center justify-center">
-                      <span className="text-white text-[10px] font-bold">
-                        {post.author.name?.charAt(0)?.toUpperCase() || "U"}
-                      </span>
+                    <div className="w-5 h-5 rounded-xs bg-surface-muted border border-border flex items-center justify-center font-mono text-[9px] font-bold text-text-primary">
+                      {post.author.name?.charAt(0)?.toUpperCase() || "U"}
                     </div>
-                    <span className="text-xs font-medium text-text-secondary truncate max-w-[100px]">
+                    <span className="text-xs font-mono text-text-secondary truncate max-w-[100px]">
                       {post.author.name}
                     </span>
                   </div>
-                  <span className="text-xs text-text-tertiary">
-                    {new Date(post.createdAt).toLocaleDateString()}
+                  <span className="text-[11px] font-mono text-text-tertiary">
+                    {new Date(post.createdAt).toLocaleDateString("zh-TW")}
                   </span>
                 </div>
               </div>

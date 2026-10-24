@@ -31,76 +31,79 @@ export default async function InboxPage() {
       <div className="max-w-3xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold text-text-primary mb-2">📬 系統信箱</h1>
-            <p className="text-text-secondary">您兌換的禮物與系統通知都會在這裡。</p>
+            <span className="text-xs font-mono tracking-wider text-text-tertiary uppercase block mb-1">
+              [ INBOX // 系統收件匣 ]
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-1">系統信箱</h1>
+            <p className="text-xs text-text-secondary">您兌換的禮券與系統通知皆記錄於此。</p>
           </div>
-          <Link href="/shop" className="px-4 py-2 bg-surface border border-border rounded-lg text-sm font-semibold hover:bg-background transition-colors shadow-sm">
+          <Link href="/shop" className="px-3.5 py-1.5 bg-surface border border-border rounded-sm text-xs font-semibold hover:border-text-primary transition-colors">
             返回商城
           </Link>
         </div>
 
         {dbError && (
-          <div className="bg-error/10 border border-error text-error p-6 rounded-2xl mb-8">
-            <h2 className="text-xl font-bold mb-2">資料載入失敗 (Server Error)</h2>
-            <p className="font-mono text-sm whitespace-pre-wrap">{dbError}</p>
+          <div className="bg-error/10 border border-error text-error p-6 rounded-md mb-8">
+            <h2 className="text-sm font-bold mb-1">資料載入失敗 (Server Error)</h2>
+            <p className="font-mono text-xs whitespace-pre-wrap">{dbError}</p>
           </div>
         )}
 
         {messages.length === 0 ? (
-          <div className="bg-surface border border-border rounded-2xl p-12 text-center shadow-sm">
-            <div className="text-5xl mb-4">📭</div>
-            <h3 className="text-xl font-bold text-text-primary mb-2">信箱空空如也</h3>
-            <p className="text-text-secondary mb-6">您目前沒有任何新訊息或禮物。</p>
-            <Link href="/shop" className="px-6 py-2.5 bg-primary text-white rounded-full text-sm font-bold shadow-md hover:bg-primary-dark transition-colors">
-              去逛逛商城
+          <div className="paper-card p-12 text-center bg-surface">
+            <div className="font-mono text-xs text-text-tertiary mb-3">[ NO MESSAGES // 信箱目前為空 ]</div>
+            <h3 className="text-base font-bold text-text-primary mb-1">尚無任何新訊息或禮物</h3>
+            <p className="text-xs text-text-secondary mb-6">您完成筆記積分兌換後，憑證將會發送至此處。</p>
+            <Link href="/shop" className="px-5 py-2.5 bg-primary text-white rounded-sm text-xs font-semibold hover:bg-primary-light transition-colors inline-block">
+              前往積分商城 →
             </Link>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
             {messages.map((msg) => (
-              <div key={msg.id} className="bg-surface border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+              <div key={msg.id} className="paper-card p-6 bg-surface relative overflow-hidden">
                 {!msg.isRead && (
-                  <div className="absolute top-6 right-6 w-3 h-3 rounded-full bg-error animate-pulse" />
+                  <div className="absolute top-6 right-6 w-2 h-2 rounded-full bg-accent" />
                 )}
                 
-                <h3 className="text-lg font-bold text-text-primary mb-2 pr-6">
+                <h3 className="text-base font-bold text-text-primary mb-1.5 pr-6">
                   {msg.title}
                 </h3>
-                <div className="text-xs text-text-tertiary mb-4">
+                <div className="text-[11px] font-mono text-text-tertiary mb-3">
                   {new Date(msg.createdAt).toLocaleString("zh-TW")}
                 </div>
                 
-                <p className="text-text-secondary text-sm leading-relaxed mb-6">
+                <p className="text-text-secondary text-xs leading-relaxed mb-5">
                   {msg.content}
                 </p>
                 
                 {msg.barcode && !msg.actionUrl && (
-                  <div className="mt-4 p-6 bg-white border border-border/50 rounded-xl flex flex-col items-center justify-center gap-3 w-fit mx-auto shadow-inner">
-                    <div className="text-sm font-bold text-slate-500 mb-1">請向店員出示此條碼</div>
-                    {/* 使用開源的 bwip-js API 產生條碼圖片，完全免費且快速 */}
+                  <div className="mt-4 p-5 bg-white border border-border rounded-sm flex flex-col items-center justify-center gap-2 w-fit mx-auto">
+                    <div className="text-xs font-mono text-text-secondary mb-1">[ 請向門市出示此條碼 ]</div>
+                    {/* 使用開源的 bwip-js API 產生條碼圖片 */}
                     <img 
                       src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${msg.barcode}&scale=3&height=10&includetext`} 
                       alt="禮物條碼"
                       className="max-w-full h-auto mix-blend-multiply"
                     />
-                    <div className="mt-2 px-3 py-1 bg-slate-100 rounded text-xs font-mono text-slate-600 font-bold tracking-widest">
+                    <div className="mt-2 px-3 py-1 bg-surface-muted border border-border rounded-xs text-xs font-mono text-text-primary font-bold tracking-widest">
                       序號: {msg.barcode}
                     </div>
                   </div>
                 )}
 
                 {msg.actionUrl && (
-                  <div className="mt-6 flex flex-col items-center">
+                  <div className="mt-5 flex flex-col items-center">
                     <a 
                       href={msg.actionUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-dark transition-transform hover:scale-[1.02] flex items-center gap-2"
+                      className="px-6 py-2.5 bg-primary text-white text-xs font-semibold rounded-sm hover:bg-primary-light transition-colors inline-flex items-center gap-2"
                     >
-                      <span className="text-xl">🎟️</span> 點擊開啟真實專屬票券 (條碼)
+                      開啟實體票券憑證 (條碼) →
                     </a>
-                    <div className="mt-3 text-xs text-text-tertiary">
-                      交易序號參考: {msg.barcode} (請以票券網頁內實際條碼為準)
+                    <div className="mt-2 text-[11px] font-mono text-text-tertiary">
+                      交易序號參考: {msg.barcode} (請以票券頁面實際條碼為準)
                     </div>
                   </div>
                 )}

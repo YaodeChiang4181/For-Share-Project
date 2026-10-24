@@ -109,7 +109,7 @@ export default function AdminPage() {
       const data = await res.json();
       setReports(data.reports || []);
     } catch {
-      setActionMsg("❌ 載入檢舉清單失敗");
+      setActionMsg("[ 錯誤 ] 載入檢舉清單失敗");
     } finally {
       setReportsLoading(false);
     }
@@ -143,7 +143,7 @@ export default function AdminPage() {
         setPostsPage(data.currentPage || 1);
       }
     } catch {
-      setActionMsg("❌ 載入筆記列表失敗");
+      setActionMsg("[ 錯誤 ] 載入筆記列表失敗");
     } finally {
       setPostsLoading(false);
     }
@@ -173,13 +173,13 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setActionMsg(`✅ ${data.message}`);
+        setActionMsg(`[ 成功 ] ${data.message}`);
         await loadPosts(postsPage, postsSearch);
       } else {
-        setActionMsg(`❌ ${data.error}`);
+        setActionMsg(`[ 錯誤 ] ${data.error}`);
       }
     } catch {
-      setActionMsg("❌ 操作失敗，請稍後再試");
+      setActionMsg("[ 錯誤 ] 操作失敗，請稍後再試");
     }
   };
 
@@ -194,21 +194,21 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setActionMsg(`✅ ${data.message}`);
+        setActionMsg(`[ 成功 ] ${data.message}`);
         // 重新載入清單
         await loadReports();
       } else {
-        setActionMsg(`❌ ${data.error}`);
+        setActionMsg(`[ 錯誤 ] ${data.error}`);
       }
     } catch {
-      setActionMsg("❌ 操作失敗，請稍後再試");
+      setActionMsg("[ 錯誤 ] 操作失敗，請稍後再試");
     }
   };
 
   if (sessionStatus === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-text-tertiary animate-pulse">載入管理後台中...</div>
+        <div className="text-text-tertiary animate-pulse font-mono text-sm">[ LOADING // 載入管理後台中... ]</div>
       </div>
     );
   }
@@ -218,24 +218,25 @@ export default function AdminPage() {
       <div className="mx-auto max-w-7xl">
         {/* 標題 */}
         <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-text-primary mb-2">🛡️ 營運管理後台</h1>
-          <p className="text-text-secondary">管理員專屬控制面板 — 內容審核與商業數據分析</p>
+          <div className="text-xs font-mono text-text-tertiary mb-1">[ ADMIN CONSOLE // 系統管理 ]</div>
+          <h1 className="text-3xl font-extrabold text-text-primary mb-2">營運管理後台</h1>
+          <p className="text-text-secondary text-sm">管理員專屬控制面板 — 內容審核與商業數據分析</p>
         </div>
 
         {/* Tab 切換 */}
         <div className="flex gap-2 mb-8">
           {[
-            { key: "moderation" as const, label: "👮 內容審核中心", count: reports.length },
-            { key: "content" as const, label: "📚 全站內容管理" },
-            { key: "analytics" as const, label: "📊 數據儀表板" },
+            { key: "moderation" as const, label: "內容審核中心", count: reports.length },
+            { key: "content" as const, label: "全站內容管理" },
+            { key: "analytics" as const, label: "數據儀表板" },
           ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-5 py-3 rounded-xl text-sm font-bold transition-all ${
+              className={`px-5 py-3 rounded-md text-xs font-bold transition-all ${
                 activeTab === tab.key
-                  ? "bg-primary text-white shadow-lg shadow-primary/25"
-                  : "bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-primary/30"
+                  ? "bg-primary text-white shadow-sm"
+                  : "bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-text-primary"
               }`}
             >
               {tab.label}
@@ -250,8 +251,8 @@ export default function AdminPage() {
 
         {/* 操作訊息 */}
         {actionMsg && (
-          <div className={`mb-6 px-5 py-3 rounded-xl text-sm font-medium animate-fade-in ${
-            actionMsg.startsWith("✅")
+          <div className={`mb-6 px-5 py-3 rounded-md text-xs font-mono font-medium animate-fade-in ${
+            actionMsg.startsWith("[ 成功 ]")
               ? "bg-success/10 text-success border border-success/20"
               : "bg-error/10 text-error border border-error/20"
           }`}>
@@ -267,16 +268,16 @@ export default function AdminPage() {
                 <p className="text-text-tertiary animate-pulse">載入檢舉清單中...</p>
               </div>
             ) : reports.length === 0 ? (
-              <div className="bg-surface border border-border rounded-2xl p-12 text-center">
-                <p className="text-5xl mb-4">✨</p>
-                <h3 className="text-xl font-bold text-text-primary mb-2">目前沒有待處理的檢舉</h3>
-                <p className="text-text-secondary">平台一切運作正常！</p>
+              <div className="bg-surface border border-border rounded-md p-12 text-center">
+                <div className="font-mono text-xs text-text-tertiary mb-3">[ NO PENDING REPORTS ]</div>
+                <h3 className="text-lg font-bold text-text-primary mb-2">目前沒有待處理的檢舉</h3>
+                <p className="text-text-secondary text-xs">平台審核佇列已清空，各項內容運作正常。</p>
               </div>
             ) : (
               reports.map((report) => (
                 <div
                   key={report.id}
-                  className="bg-surface border border-border rounded-2xl overflow-hidden transition-all hover:shadow-md"
+                  className="bg-surface border border-border rounded-md overflow-hidden transition-all hover:border-text-primary"
                 >
                   {/* 檢舉摘要 */}
                   <button
@@ -285,24 +286,24 @@ export default function AdminPage() {
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className="px-2.5 py-1 rounded-lg bg-error/10 text-error text-xs font-bold border border-error/20">
-                          {report.reason}
+                        <span className="px-2.5 py-0.5 rounded-xs bg-error/10 text-error text-[10px] font-mono font-bold border border-error/20">
+                          [ {report.reason} ]
                         </span>
                         {report.reporterCredit.isSuspicious && (
-                          <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 text-xs font-bold border border-amber-500/20">
-                            ⚠️ 高駁回率帳號
+                          <span className="px-2.5 py-0.5 rounded-xs bg-amber-500/10 text-amber-600 text-[10px] font-mono font-bold border border-amber-500/20">
+                            [ 警示 ] 高駁回率帳號
                           </span>
                         )}
                       </div>
                       <h3 className="text-base font-bold text-text-primary truncate">
-                        📄 {report.post.title}
+                        [ 筆記 ] {report.post.title}
                       </h3>
-                      <p className="text-xs text-text-tertiary mt-1">
+                      <p className="text-xs text-text-tertiary font-mono mt-1">
                         作者：{report.post.author.name} ・ 檢舉人：{report.reporter.name} ・ {new Date(report.createdAt).toLocaleDateString("zh-TW")}
                       </p>
                     </div>
-                    <span className="text-text-tertiary text-lg flex-shrink-0">
-                      {expandedReport === report.id ? "▲" : "▼"}
+                    <span className="text-text-tertiary font-mono text-xs flex-shrink-0">
+                      {expandedReport === report.id ? "[ 收合 ]" : "[ 展開 ]"}
                     </span>
                   </button>
 
@@ -310,17 +311,17 @@ export default function AdminPage() {
                   {expandedReport === report.id && (
                     <div className="px-6 pb-6 border-t border-border pt-4 space-y-4 animate-fade-in">
                       {/* 被檢舉內容 */}
-                      <div className="bg-background rounded-xl p-4">
-                        <p className="text-xs font-bold text-text-tertiary mb-2">📝 貼文內容預覽</p>
-                        <p className="text-sm text-text-secondary line-clamp-5 whitespace-pre-wrap">
+                      <div className="bg-background rounded-sm p-4 border border-border">
+                        <p className="text-xs font-mono font-bold text-text-tertiary mb-2">[ 貼文內容預覽 ]</p>
+                        <p className="text-xs text-text-secondary line-clamp-5 whitespace-pre-wrap leading-relaxed">
                           {report.post.content}
                         </p>
                       </div>
 
                       {/* 檢舉人信用 */}
-                      <div className="bg-background rounded-xl p-4">
-                        <p className="text-xs font-bold text-text-tertiary mb-2">🔍 檢舉人歷史信用</p>
-                        <div className="flex items-center gap-4 text-sm">
+                      <div className="bg-background rounded-sm p-4 border border-border">
+                        <p className="text-xs font-mono font-bold text-text-tertiary mb-2">[ 檢舉人歷史信用 ]</p>
+                        <div className="flex items-center gap-4 text-xs font-mono">
                           <span className="text-text-secondary">
                             累計檢舉：<span className="font-bold text-text-primary">{report.reporterCredit.totalReports}</span> 次
                           </span>
@@ -340,21 +341,21 @@ export default function AdminPage() {
                       <div className="flex flex-wrap gap-3">
                         <button
                           onClick={() => handleResolve(report.id, "resolve_hide")}
-                          className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 transition-all shadow-sm"
+                          className="px-4 py-2 rounded-sm text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 transition-colors shadow-sm"
                         >
-                          🚫 下架此貼文
+                          下架此筆記
                         </button>
                         <button
                           onClick={() => handleResolve(report.id, "resolve_ban")}
-                          className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-error hover:bg-red-600 transition-all shadow-sm"
+                          className="px-4 py-2 rounded-sm text-xs font-semibold text-white bg-error hover:bg-red-700 transition-colors shadow-sm"
                         >
-                          ⛔ 下架 + 停權作者 7 天
+                          下架並停權作者 7 天
                         </button>
                         <button
                           onClick={() => handleResolve(report.id, "dismiss")}
-                          className="px-5 py-2.5 rounded-xl text-sm font-bold text-text-secondary bg-background border border-border hover:border-primary/30 hover:text-text-primary transition-all"
+                          className="px-4 py-2 rounded-sm text-xs font-semibold text-text-secondary bg-surface border border-border hover:border-text-primary hover:text-text-primary transition-colors"
                         >
-                          ✕ 駁回檢舉
+                          駁回檢舉
                         </button>
                       </div>
                     </div>
@@ -395,23 +396,23 @@ export default function AdminPage() {
                 {/* 平台概覽 */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {[
-                    { label: "總用戶數", value: analytics.overview.totalUsers, icon: "👥", color: "primary" },
-                    { label: "活躍貼文", value: analytics.overview.totalPosts, icon: "📄", color: "accent" },
-                    { label: "搜尋次數", value: analytics.overview.totalSearches, icon: "🔍", color: "success" },
-                    { label: "觀看次數", value: analytics.overview.totalPageViews, icon: "👁️", color: "primary" },
-                    { label: "待處理檢舉", value: analytics.overview.pendingReports, icon: "🚨", color: "error" },
+                    { label: "總用戶數", value: analytics.overview.totalUsers, code: "USERS" },
+                    { label: "活躍貼文", value: analytics.overview.totalPosts, code: "POSTS" },
+                    { label: "搜尋次數", value: analytics.overview.totalSearches, code: "SEARCH" },
+                    { label: "觀看次數", value: analytics.overview.totalPageViews, code: "VIEWS" },
+                    { label: "待處理檢舉", value: analytics.overview.pendingReports, code: "REPORTS" },
                   ].map((stat) => (
-                    <div key={stat.label} className="bg-surface border border-border rounded-2xl p-5 text-center">
-                      <p className="text-3xl mb-2">{stat.icon}</p>
-                      <p className="text-2xl font-extrabold text-text-primary">{stat.value}</p>
-                      <p className="text-xs font-medium text-text-tertiary mt-1">{stat.label}</p>
+                    <div key={stat.label} className="bg-surface border border-border rounded-md p-5 text-center">
+                      <div className="font-mono text-[10px] text-text-tertiary mb-2 font-bold tracking-wider">[ {stat.code} ]</div>
+                      <p className="text-2xl font-extrabold text-text-primary font-mono">{stat.value}</p>
+                      <p className="text-xs font-medium text-text-secondary mt-1">{stat.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* 注意事項 7：熱門搜尋排行（長條圖，展示區 60-80%，點擊展開至 80% 螢幕寬度）*/}
                 <div
-                  className={`bg-surface border border-border rounded-2xl p-6 transition-all duration-300 cursor-pointer ${
+                  className={`bg-surface border border-border rounded-md p-6 transition-all duration-300 cursor-pointer ${
                     expandedChart === "search"
                       ? "fixed inset-x-[10%] top-24 bottom-12 z-50 overflow-y-auto shadow-2xl"
                       : "mx-auto"
@@ -420,13 +421,13 @@ export default function AdminPage() {
                   onClick={() => setExpandedChart(expandedChart === "search" ? null : "search")}
                 >
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-extrabold text-text-primary">🔥 熱門搜尋關鍵字 TOP 10</h3>
-                    <span className="text-xs text-text-tertiary">
-                      {expandedChart === "search" ? "點擊縮小" : "點擊展開"}
+                    <h3 className="text-base font-bold text-text-primary font-mono">[ TOP 10 ] 熱門搜尋關鍵字</h3>
+                    <span className="text-xs font-mono text-text-tertiary">
+                      {expandedChart === "search" ? "[ 點擊縮小 ]" : "[ 點擊展開 ]"}
                     </span>
                   </div>
                   {analytics.topKeywords.length === 0 ? (
-                    <p className="text-sm text-text-tertiary text-center py-8">目前沒有搜尋紀錄</p>
+                    <p className="text-xs font-mono text-text-tertiary text-center py-8">[ 目前沒有搜尋紀錄 ]</p>
                   ) : (
                     <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
                       {analytics.topKeywords.map((kw, i) => {
@@ -434,15 +435,15 @@ export default function AdminPage() {
                         const pct = Math.max(Math.round((kw.count / maxCount) * 100), 5);
                         return (
                           <div key={kw.keyword} className="flex items-center gap-3">
-                            <span className="text-xs font-bold text-text-tertiary w-5 text-right">{i + 1}</span>
+                            <span className="text-xs font-bold font-mono text-text-tertiary w-5 text-right">{i + 1}</span>
                             <div className="flex-1">
                               <div className="flex items-center justify-between mb-1">
-                                <span className="text-sm font-bold text-text-primary">{kw.keyword}</span>
-                                <span className="text-xs font-medium text-text-tertiary">{kw.count} 次</span>
+                                <span className="text-xs font-bold text-text-primary">{kw.keyword}</span>
+                                <span className="text-xs font-mono text-text-tertiary">{kw.count} 次</span>
                               </div>
-                              <div className="h-3 bg-background rounded-full overflow-hidden">
+                              <div className="h-2 bg-background rounded-xs overflow-hidden border border-border">
                                 <div
-                                  className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
+                                  className="h-full bg-primary transition-all duration-500"
                                   style={{ width: `${pct}%` }}
                                 />
                               </div>
@@ -464,7 +465,7 @@ export default function AdminPage() {
 
                 {/* 各科系平均停留時間 */}
                 <div
-                  className={`bg-surface border border-border rounded-2xl p-6 transition-all duration-300 cursor-pointer ${
+                  className={`bg-surface border border-border rounded-md p-6 transition-all duration-300 cursor-pointer ${
                     expandedChart === "dwell"
                       ? "fixed inset-x-[10%] top-24 bottom-12 z-50 overflow-y-auto shadow-2xl"
                       : "mx-auto"
@@ -473,9 +474,9 @@ export default function AdminPage() {
                   onClick={() => setExpandedChart(expandedChart === "dwell" ? null : "dwell")}
                 >
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-extrabold text-text-primary">⏱️ 各類別平均觀看時間</h3>
-                    <span className="text-xs text-text-tertiary">
-                      {expandedChart === "dwell" ? "點擊縮小" : "點擊展開"}
+                    <h3 className="text-base font-bold text-text-primary font-mono">[ DWELL TIME ] 各類別平均觀看時間</h3>
+                    <span className="text-xs font-mono text-text-tertiary">
+                      {expandedChart === "dwell" ? "[ 點擊縮小 ]" : "[ 點擊展開 ]"}
                     </span>
                   </div>
                   {analytics.categoryDwell.length === 0 ? (
@@ -540,59 +541,59 @@ export default function AdminPage() {
                 <p className="text-text-tertiary animate-pulse">載入筆記中...</p>
               </div>
             ) : posts.length === 0 ? (
-              <div className="bg-surface border border-border rounded-2xl p-12 text-center">
-                <p className="text-5xl mb-4">🔍</p>
-                <h3 className="text-xl font-bold text-text-primary mb-2">找不到筆記</h3>
-                <p className="text-text-secondary">試試看其他關鍵字？</p>
+              <div className="paper-card p-12 text-center bg-surface">
+                <div className="font-mono text-xs text-text-tertiary mb-2">[ NO POSTS FOUND ]</div>
+                <h3 className="text-base font-bold text-text-primary mb-1">找不到筆記</h3>
+                <p className="text-xs text-text-secondary">試試看其他關鍵字？</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {posts.map((post) => (
                   <div
                     key={post.id}
-                    className={`bg-surface border ${post.status === 'HIDDEN' ? 'border-error/30 bg-error/5' : 'border-border'} rounded-2xl overflow-hidden transition-all hover:shadow-md`}
+                    className={`paper-card ${post.status === 'HIDDEN' ? 'border-error/30 bg-error/5' : 'bg-surface'} overflow-hidden transition-all`}
                   >
                     <button
                       onClick={() => setExpandedGlobalPost(expandedGlobalPost === post.id ? null : post.id)}
-                      className="w-full p-6 text-left flex items-start justify-between gap-4"
+                      className="w-full p-5 text-left flex items-start justify-between gap-4"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
                           {post.status === "HIDDEN" ? (
-                            <span className="px-2.5 py-1 rounded-lg bg-error text-white text-xs font-bold">
+                            <span className="px-2 py-0.5 rounded-xs bg-error text-white text-[10px] font-mono font-bold">
                               已下架
                             </span>
                           ) : (
-                            <span className="px-2.5 py-1 rounded-lg bg-success/10 text-success border border-success/20 text-xs font-bold">
+                            <span className="px-2 py-0.5 rounded-xs bg-surface-muted text-text-secondary border border-border text-[10px] font-mono font-medium">
                               上架中
                             </span>
                           )}
-                          <span className="px-2.5 py-1 rounded-lg bg-background border border-border text-text-secondary text-xs font-medium">
+                          <span className="px-2 py-0.5 rounded-xs bg-surface-muted border border-border text-text-tertiary text-[10px] font-mono">
                             {post.category}
                           </span>
                         </div>
-                        <h3 className={`text-base font-bold truncate ${post.status === 'HIDDEN' ? 'text-text-secondary line-through' : 'text-text-primary'}`}>
-                          📄 {post.title}
+                        <h3 className={`text-sm font-bold truncate ${post.status === 'HIDDEN' ? 'text-text-secondary line-through' : 'text-text-primary'}`}>
+                          {post.title}
                         </h3>
-                        <p className="text-xs text-text-tertiary mt-1">
+                        <p className="text-[11px] font-mono text-text-tertiary mt-1">
                           作者：{post.author?.name} ({post.author?.email}) ・ 上傳於 {new Date(post.createdAt).toLocaleDateString("zh-TW")}
                         </p>
                       </div>
-                      <span className="text-text-tertiary text-lg flex-shrink-0">
+                      <span className="text-text-tertiary text-xs font-mono flex-shrink-0">
                         {expandedGlobalPost === post.id ? "▲" : "▼"}
                       </span>
                     </button>
 
                     {expandedGlobalPost === post.id && (
-                      <div className="px-6 pb-6 border-t border-border pt-4 space-y-4 animate-fade-in">
-                        <div className="bg-background rounded-xl p-4">
-                          <p className="text-xs font-bold text-text-tertiary mb-2">📝 筆記內容</p>
-                          <p className="text-sm text-text-secondary whitespace-pre-wrap">
+                      <div className="px-5 pb-5 border-t border-border pt-4 space-y-4 animate-fade-in">
+                        <div className="bg-surface-muted rounded-xs p-4 border border-border">
+                          <p className="text-xs font-mono font-bold text-text-primary mb-2">[ 筆記內容條目 ]</p>
+                          <p className="text-xs text-text-secondary whitespace-pre-wrap leading-relaxed">
                             {post.content}
                           </p>
                         </div>
                         
-                        <div className="flex flex-wrap gap-3 pt-2">
+                        <div className="flex flex-wrap gap-2 pt-1">
                           {post.status !== "HIDDEN" && (
                             <>
                               <button
@@ -601,9 +602,9 @@ export default function AdminPage() {
                                     handleModeratePost(post.id, "hide");
                                   }
                                 }}
-                                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 transition-all shadow-sm"
+                                className="px-4 py-2 rounded-xs text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 transition-colors"
                               >
-                                🚫 強制下架
+                                強制下架
                               </button>
                               <button
                                 onClick={() => {
@@ -611,9 +612,9 @@ export default function AdminPage() {
                                     handleModeratePost(post.id, "ban");
                                   }
                                 }}
-                                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-error hover:bg-red-600 transition-all shadow-sm"
+                                className="px-4 py-2 rounded-xs text-xs font-semibold text-white bg-error hover:bg-red-700 transition-colors"
                               >
-                                ⛔ 強制下架 + 停權作者 7 天
+                                強制下架 + 停權作者 7 天
                               </button>
                             </>
                           )}
@@ -624,9 +625,9 @@ export default function AdminPage() {
                                   handleModeratePost(post.id, "restore");
                                 }
                               }}
-                              className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-success hover:bg-emerald-600 transition-all shadow-sm"
+                              className="px-4 py-2 rounded-xs text-xs font-semibold text-white bg-primary hover:bg-primary-light transition-colors"
                             >
-                              ♻️ 恢復上架
+                              恢復上架
                             </button>
                           )}
                         </div>

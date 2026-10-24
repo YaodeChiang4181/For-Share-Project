@@ -80,26 +80,22 @@ export default async function DashboardPage() {
     {
       label: "目前積分",
       value: user.points.toLocaleString(),
-      icon: "💰",
-      color: "from-amber-500 to-orange-500",
+      code: "PTS",
     },
     {
       label: "上傳筆記",
       value: user._count.posts.toString(),
-      icon: "📝",
-      color: "from-indigo-500 to-purple-500",
+      code: "DOC",
     },
     {
       label: "留言數量",
       value: user._count.comments.toString(),
-      icon: "💬",
-      color: "from-emerald-500 to-teal-500",
+      code: "COM",
     },
     {
       label: "會員等級",
-      value: user.role === "SHARE_VIP" ? "Share VIP" : user.role === "ADMIN" ? "管理員" : "免費版",
-      icon: user.role === "SHARE_VIP" ? "👑" : "🎓",
-      color: "from-rose-500 to-pink-500",
+      value: user.role === "SHARE_VIP" ? "Share VIP" : user.role === "ADMIN" ? "管理員" : "一般會員",
+      code: "TIER",
     },
   ];
 
@@ -125,33 +121,35 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-6xl">
         {/* Welcome Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-text-primary mb-2">
-            嗨，{user.name} 👋
+          <span className="text-xs font-mono tracking-wider text-text-tertiary uppercase block mb-1">
+            [ DASHBOARD // 個人儀表板 ]
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-1">
+            嗨，{user.name}
           </h1>
-          <p className="text-text-secondary">
-            歡迎回到 ForShare！這是你的個人中心。
+          <p className="text-xs text-text-secondary">
+            歡迎回到 ForShare 校園知識庫。
           </p>
         </div>
 
         {/* Invite Code Banner */}
-        <div className="mb-8 p-5 rounded-2xl bg-primary/5 border border-primary/20">
+        <div className="mb-8 p-5 rounded-md bg-surface border border-border">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium text-text-primary mb-1">🔗 你的專屬邀請碼</p>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-mono font-bold text-text-primary">[ 專屬推薦碼 ]</span>
                 {user.inviteRewardReceived && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-success/10 text-success border border-success/20">
-                    已獲得推廣獎勵
+                  <span className="px-1.5 py-0.5 rounded-xs text-[10px] font-mono bg-success/10 text-success border border-success/20">
+                    已核發推廣獎勵
                   </span>
                 )}
               </div>
-              <p className="text-xs text-text-secondary">
-                分享給朋友註冊，當朋友首次上傳筆記或打賞時，<strong className="text-primary">雙方皆可獲得 10 點積分！</strong>
-                <br />
-                <span className="text-text-tertiary">(每位邀請人限領取一次額外獎勵)</span>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                分享給朋友註冊，當朋友首次上傳筆記或打賞時，<strong className="text-text-primary">雙方皆可獲得 10 點積分！</strong>
+                <span className="text-text-tertiary font-mono ml-1">(每位邀請人限領取一次額外獎勵)</span>
               </p>
             </div>
-            <code className="px-4 py-2 rounded-lg bg-surface border border-border text-primary font-mono font-bold text-sm tracking-wider">
+            <code className="px-3.5 py-1.5 rounded-xs bg-surface-muted border border-border text-text-primary font-mono font-bold text-xs tracking-wider">
               {user.inviteCode}
             </code>
           </div>
@@ -162,13 +160,13 @@ export default async function DashboardPage() {
           {statCards.map((card) => (
             <div
               key={card.label}
-              className="p-5 rounded-2xl bg-surface border border-border hover:border-primary/20 transition-all hover:shadow-md"
+              className="paper-card p-5 bg-surface"
             >
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center text-lg mb-3`}>
-                {card.icon}
+              <div className="flex justify-between items-baseline mb-2">
+                <span className="text-[10px] font-mono text-text-tertiary">[{card.code}]</span>
+                <span className="text-xs font-mono text-text-tertiary">{card.label}</span>
               </div>
-              <p className="text-2xl font-bold text-text-primary">{card.value}</p>
-              <p className="text-xs text-text-tertiary mt-1">{card.label}</p>
+              <p className="text-2xl font-bold font-mono text-text-primary">{card.value}</p>
             </div>
           ))}
         </div>
@@ -176,60 +174,59 @@ export default async function DashboardPage() {
         {/* Quick Actions + Recent Transactions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Quick Actions */}
-          <div className="lg:col-span-1 p-6 rounded-2xl bg-surface border border-border">
-            <h2 className="text-lg font-bold text-text-primary mb-4">快速操作</h2>
-            <div className="space-y-3">
+          <div className="lg:col-span-1 p-6 rounded-md bg-surface border border-border">
+            <h2 className="text-sm font-bold font-mono tracking-wider text-text-primary mb-4 uppercase">
+              [ 快捷操作 // ACTIONS ]
+            </h2>
+            <div className="space-y-2">
               <Link
                 href="/upload"
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-background transition-colors group"
+                className="flex items-center justify-between p-3 rounded-sm border border-border/60 hover:border-text-primary transition-colors group"
               >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                  📤
-                </div>
                 <div>
-                  <p className="text-sm font-medium text-text-primary">上傳筆記</p>
-                  <p className="text-xs text-text-tertiary">分享知識，獲取積分</p>
+                  <p className="text-xs font-bold text-text-primary">上傳筆記</p>
+                  <p className="text-[11px] text-text-tertiary">整理講義，累積同儕積分</p>
                 </div>
+                <span className="font-mono text-xs text-text-tertiary group-hover:text-text-primary transition-colors">→</span>
               </Link>
               <Link
                 href="/explore"
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-background transition-colors group"
+                className="flex items-center justify-between p-3 rounded-sm border border-border/60 hover:border-text-primary transition-colors group"
               >
-                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-colors">
-                  🔍
-                </div>
                 <div>
-                  <p className="text-sm font-medium text-text-primary">探索知識</p>
-                  <p className="text-xs text-text-tertiary">搜尋筆記與考古題</p>
+                  <p className="text-xs font-bold text-text-primary">探索知識庫</p>
+                  <p className="text-[11px] text-text-tertiary">檢索系所筆記與期中考古</p>
                 </div>
+                <span className="font-mono text-xs text-text-tertiary group-hover:text-text-primary transition-colors">→</span>
               </Link>
               <Link
                 href="/shop"
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-background transition-colors group"
+                className="flex items-center justify-between p-3 rounded-sm border border-border/60 hover:border-text-primary transition-colors group"
               >
-                <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center text-success group-hover:bg-success group-hover:text-white transition-colors">
-                  🎁
-                </div>
                 <div>
-                  <p className="text-sm font-medium text-text-primary">積分商城</p>
-                  <p className="text-xs text-text-tertiary">兌換超商禮券</p>
+                  <p className="text-xs font-bold text-text-primary">積分兌換商城</p>
+                  <p className="text-[11px] text-text-tertiary">兌換超商商品卡與禮券</p>
                 </div>
+                <span className="font-mono text-xs text-text-tertiary group-hover:text-text-primary transition-colors">→</span>
               </Link>
               
               {/* LINE 綁定按鈕 */}
-              <LineBindButton isLinked={!!user.lineId} />
-              
+              <div className="pt-2">
+                <LineBindButton isLinked={!!user.lineId} />
+              </div>
             </div>
           </div>
 
           {/* Recent Transactions */}
-          <div className="lg:col-span-2 p-6 rounded-2xl bg-surface border border-border">
-            <h2 className="text-lg font-bold text-text-primary mb-4">最近交易紀錄</h2>
+          <div className="lg:col-span-2 p-6 rounded-md bg-surface border border-border">
+            <h2 className="text-sm font-bold font-mono tracking-wider text-text-primary mb-4 uppercase">
+              [ 近期交易紀錄 // TRANSACTIONS ]
+            </h2>
             {recentTransactions.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-4xl mb-3">📊</p>
-                <p className="text-sm text-text-tertiary">還沒有交易紀錄</p>
-                <p className="text-xs text-text-tertiary mt-1">上傳筆記或打賞他人來產生你的第一筆紀錄！</p>
+                <p className="text-xs font-mono text-text-tertiary mb-1">[ NO TRANSACTION RECORDS ]</p>
+                <p className="text-xs text-text-secondary">目前尚無點數交易紀錄</p>
+                <p className="text-[11px] text-text-tertiary mt-1">上傳筆記或打賞同儕筆記即可累積記錄。</p>
               </div>
             ) : (
               <div className="space-y-3">

@@ -46,12 +46,12 @@ export default function UpgradePage() {
   if (role === "VIP" && !success) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center bg-background px-4">
-        <div className="text-center bg-surface p-12 rounded-3xl shadow-lg border border-border">
-          <div className="text-6xl mb-6">💎</div>
-          <h1 className="text-2xl font-bold text-text-primary mb-4">您已經是 Share 尊榮會員！</h1>
-          <p className="text-text-secondary mb-8">感謝您的支持，您目前享有所有進階功能。</p>
-          <Link href="/shop" className="px-6 py-3 bg-primary text-white font-bold rounded-full hover:bg-primary-dark transition-colors shadow-md">
-            前往積分商城
+        <div className="text-center bg-surface p-10 rounded-md border border-border shadow-sm max-w-md">
+          <div className="font-mono text-xs text-text-tertiary mb-3">[ SHARE VIP ]</div>
+          <h1 className="text-xl font-bold text-text-primary mb-3">您已經是 Share 會員</h1>
+          <p className="text-xs text-text-secondary mb-6 leading-relaxed">感謝您的支持，您目前享有平台所有進階兌換與搜尋權限。</p>
+          <Link href="/shop" className="px-5 py-2.5 bg-primary text-white text-xs font-semibold rounded-sm hover:bg-primary-light transition-colors inline-block">
+            前往積分商城 →
           </Link>
         </div>
       </div>
@@ -60,18 +60,15 @@ export default function UpgradePage() {
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-background relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-full h-[500px] bg-gradient-to-b from-amber-500/10 to-transparent pointer-events-none" />
-      
       <div className="max-w-4xl mx-auto relative z-10">
         {success ? (
-          <div className="bg-surface border border-border rounded-3xl p-16 text-center shadow-xl animate-fade-in-up">
-            <div className="text-7xl mb-6 animate-bounce">🎉</div>
-            <h1 className="text-3xl font-extrabold text-text-primary mb-4">升級成功！</h1>
-            <p className="text-xl text-text-secondary mb-8">
-              歡迎加入 Share 會員，您現在可以無限制兌換商品卡了。
+          <div className="bg-surface border border-border rounded-md p-12 text-center shadow-sm">
+            <div className="font-mono text-xs text-success mb-3">[ UPGRADE COMPLETE // 升級成功 ]</div>
+            <h1 className="text-2xl font-bold text-text-primary mb-3">會員資格已生效</h1>
+            <p className="text-sm text-text-secondary mb-6">
+              歡迎加入 Share 會員，您現在可以無限制兌換商品卡與檢索進階檔案。
             </p>
-            <div className="text-text-tertiary">正在為您跳轉至商城...</div>
+            <div className="text-xs font-mono text-text-tertiary">正在為您跳轉至商城...</div>
           </div>
         ) : (
           <div className="flex flex-col md:flex-row gap-8 items-center">
@@ -89,16 +86,16 @@ export default function UpgradePage() {
               
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-success/20 flex items-center justify-center text-success text-sm font-bold">✓</div>
-                  <span className="text-text-primary font-medium">解鎖積分商城兌換「無上限」</span>
+                  <span className="font-mono text-xs font-bold text-text-primary px-1.5 py-0.5 rounded-xs bg-surface-muted border border-border">[ + ]</span>
+                  <span className="text-text-primary text-sm font-medium">解鎖積分商城兌換「無上限」</span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-success/20 flex items-center justify-center text-success text-sm font-bold">✓</div>
-                  <span className="text-text-primary font-medium">多關鍵字進階搜尋 (精準命中)</span>
+                  <span className="font-mono text-xs font-bold text-text-primary px-1.5 py-0.5 rounded-xs bg-surface-muted border border-border">[ + ]</span>
+                  <span className="text-text-primary text-sm font-medium">多關鍵字進階搜尋 (精準命中)</span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-success/20 flex items-center justify-center text-success text-sm font-bold">✓</div>
-                  <span className="text-text-primary font-medium">專屬尊榮 VIP 徽章顯示</span>
+                  <span className="font-mono text-xs font-bold text-text-primary px-1.5 py-0.5 rounded-xs bg-surface-muted border border-border">[ + ]</span>
+                  <span className="text-text-primary text-sm font-medium">專屬尊榮 VIP 徽章顯示</span>
                 </li>
               </ul>
             </div>
@@ -117,9 +114,9 @@ export default function UpgradePage() {
                 
                 <div className="space-y-4 mb-8">
                   <div className="p-4 bg-background rounded-xl border border-border/50 text-sm text-text-secondary text-center">
-                    <div className="mb-2">支援綠界科技 ECPay 支付</div>
-                    <div className="flex justify-center gap-2 text-xl opacity-70">
-                      💳 📱 🏦
+                    <div className="mb-2 font-mono text-xs text-text-tertiary">支援綠界科技 ECPay 支付</div>
+                    <div className="font-mono text-[11px] text-text-tertiary tracking-wider">
+                      [ 信用卡 / 虛擬帳號 / 超商代碼 ]
                     </div>
                   </div>
                 </div>
