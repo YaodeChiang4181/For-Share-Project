@@ -17,7 +17,7 @@ interface PostData {
 function cleanNoteText(text: string | null | undefined): string {
   if (!text) return "";
   return text
-    .replace(/[\U00010000-\U0010ffff]|[\u2600-\u27bf]|[\u2300-\u23ff]|[\u2b50-\u2b55]|[\u203c-\u2049]/gu, "")
+    .replace(/[\u{10000}-\u{10ffff}\u2600-\u27bf\u2300-\u23ff\u2b50-\u2b55\u203c-\u2049]/gu, "")
     .replace(/\*\*AI 摘要懶人包\*\*/g, "[ 內容摘要 ]")
     .trim();
 }
