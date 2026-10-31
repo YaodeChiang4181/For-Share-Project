@@ -102,11 +102,78 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
         points: 0,
       };
     },
+    options: {
+      clientId,
+      clientSecret,
+      allowDangerousEmailAccountLinking: true,
+      ...options,
+    },
   };
 }
 
+const baseAdapter = PrismaAdapter(prisma);
+
+const authAdapter: any = {
+  ...baseAdapter,
+  async linkAccount(account: any) {
+    // 解決 Prisma 不接受 expires_in 與其他自訂屬性導致 Invalid prisma.account.create() 報錯問題
+    const {
+      userId,
+      type,
+      provider,
+      providerAccountId,
+      refresh_token,
+      access_token,
+      expires_at,
+      expires_in,
+      token_type,
+      scope,
+      id_token,
+      session_state,
+    } = account;
+
+    const calculatedExpiresAt =
+      typeof expires_at === "number"
+        ? expires_at
+        : typeof expires_in === "number"
+        ? Math.floor(Date.now() / 1000) + expires_in
+        : null;
+
+    return prisma.account.upsert({
+      where: {
+        provider_providerAccountId: {
+          provider,
+          providerAccountId,
+        },
+      },
+      update: {
+        refresh_token: refresh_token || null,
+        access_token: access_token || null,
+        expires_at: calculatedExpiresAt,
+        token_type: token_type || null,
+        scope: scope || null,
+        id_token: id_token || null,
+        session_state: session_state || null,
+      },
+      create: {
+        userId,
+        type,
+        provider,
+        providerAccountId,
+        refresh_token: refresh_token || null,
+        access_token: access_token || null,
+        expires_at: calculatedExpiresAt,
+        token_type: token_type || null,
+        scope: scope || null,
+        id_token: id_token || null,
+        session_state: session_state || null,
+      },
+    });
+  },
+};
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
+  adapter: authAdapter,
   providers: [
     NcuProvider({
       clientId: process.env.NCU_CLIENT_ID || "",

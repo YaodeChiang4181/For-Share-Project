@@ -18,8 +18,10 @@ function LoginForm() {
 
   useEffect(() => {
     if (errorParam) {
-      if (errorParam === "OAuthAccountNotLinked" || errorParam === "OAuthCallback") {
-        setError("系統偵測到帳號關聯問題。若您曾使用 Email 註冊，請先登入後進行帳號綁定。");
+      if (errorParam === "OAuthAccountNotLinked") {
+        setError("此 Email 曾以其他方式註冊。若需綁定中央大學身分，請先登入原本帳號後進行綁定。");
+      } else if (errorParam === "OAuthCallback") {
+        setError("Portal 授權回傳處理失敗 (OAuthCallback)。請確認中央大學 Portal 設定或重試。");
       } else if (errorParam === "OAuthSignin") {
         setError("Portal 登入連線發起失敗 (OAuthSignin)。請確認已重啟開發伺服器載入金鑰，或請確認 Portal 回傳網址設定完全相符。");
       } else {
