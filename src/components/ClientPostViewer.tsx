@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import NoteContentRenderer from "./NoteContentRenderer";
 
 // 注意事項 10：確保所有瀏覽器 API 呼叫都在 Client 環境下執行
 const isBrowser = typeof window !== "undefined";
@@ -388,10 +389,8 @@ export default function ClientPostViewer({ post, currentUserId, totalTips = 0, t
               </div>
             )}
 
-            <div className="prose max-w-none mb-10">
-              <p className="text-text-secondary leading-relaxed whitespace-pre-wrap text-sm">
-                {cleanNoteText(content)}
-              </p>
+            <div className="mb-10">
+              <NoteContentRenderer content={content} title={post.title} />
             </div>
 
             {post.fileUrl && (

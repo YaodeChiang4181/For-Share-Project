@@ -51,7 +51,8 @@ export async function POST(req: Request) {
     let originalBody = post.content || "";
     if (originalBody.includes("---")) {
       const parts = originalBody.split("---");
-      originalBody = parts.slice(1).join("---").trim();
+      // 注意：AI 摘要本身可能帶有 --- 分隔線，真正的原作者文字位於最後一個 --- 之後
+      originalBody = parts[parts.length - 1].trim();
     } else {
       originalBody = originalBody
         .replace(/^>.*?\n+/gm, "")
@@ -130,7 +131,9 @@ export async function POST(req: Request) {
     }
 
     // 4. 重構最終內文並寫入資料庫
-    const finalContent = `> [ 內容要點提煉 ]\n\n${newSummary}\n\n---\n\n${originalBody || post.title}`;
+    const finalContent = originalBody && originalBody !== post.title
+      ? `> [ 內容要點提煉 ]\n\n${newSummary}\n\n---\n\n${originalBody}`
+      : `> [ 內容要點提煉 ]\n\n${newSummary}`;
     const safeTags = sanitizeAiTags(newTags);
     const updateData: any = { content: finalContent };
     if (safeTags.length > 0) {

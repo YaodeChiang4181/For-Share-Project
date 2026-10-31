@@ -121,7 +121,9 @@ export async function POST(req: Request) {
           : Promise.resolve({} as Partial<StructuredTags>),
       ]);
 
-      finalContent = `> [ 內容要點提煉 ]\n\n${aiSummary}\n\n---\n\n${content}`;
+      finalContent = content && content.trim()
+        ? `> [ 內容要點提煉 ]\n\n${aiSummary}\n\n---\n\n${content}`
+        : `> [ 內容要點提煉 ]\n\n${aiSummary}`;
 
       // 使用者手填優先；若未填才採納 AI 自動補位結果
       if (!finalDepartment && detectedTags.department) {

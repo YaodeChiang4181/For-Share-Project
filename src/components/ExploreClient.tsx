@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import ExploreSearchBar from "@/components/ExploreSearchBar";
 import { safeParseAiTags } from "@/lib/tagSanitizer";
+import { extractCardSnippet } from "./NoteContentRenderer";
 
 interface PostData {
   id: string;
@@ -267,7 +268,7 @@ export default function ExploreClient({ posts }: { posts: PostData[] }) {
               
               <div className="p-4 flex-1 flex flex-col justify-between gap-4">
                 <p className="text-xs text-text-secondary line-clamp-3 leading-relaxed">
-                  {cleanNoteText(post.content) || "這份筆記沒有提供詳細說明。"}
+                  {extractCardSnippet(post.content)}
                 </p>
                 
                 <div className="flex items-center justify-between pt-3 border-t border-border mt-auto">

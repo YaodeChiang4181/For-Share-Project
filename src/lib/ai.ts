@@ -85,6 +85,33 @@ export async function callGeminiWithRetry(options: CallGeminiOptions, maxRounds 
   throw lastError || new Error("所有備用模型均無法回應，請確認 API 配額或網路連線。");
 }
 
+/**
+ * 徹底清洗 AI 產生的摘要文字：
+ * 1. 轉換 <h1>~<h6> 標籤為標準 Markdown 標題 (### )
+ * 2. 轉換 <b> / <strong> 標籤為 **
+ * 3. 剝除任何殘存的 HTML 標籤（防 XSS 與避免符號露餡）
+ * 4. 嚴格貫徹 Zero-Emoji 規範，去除所有表情符號
+ * 5. 規範化連續空行
+ */
+export function cleanSummaryOutput(text: string): string {
+  if (!text) return "";
+  return text
+    // 轉換常見標籤為 Markdown
+    .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, "\n\n### $1\n\n")
+    .replace(/<\/?h[1-6][^>]*>/gi, "\n\n### ")
+    .replace(/<\/?(b|strong)[^>]*>/gi, "**")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<li[^>]*>(.*?)<\/li>/gi, "* $1\n")
+    .replace(/<\/?(ul|ol|p|div|span)[^>]*>/gi, "\n")
+    // 移除其餘任何 HTML 標籤
+    .replace(/<\/?[a-zA-Z0-9_-]+(?:\s+[^>]*?)?>/g, "")
+    // 嚴格 Zero-Emoji 去除
+    .replace(/[\u{10000}-\u{10ffff}\u2600-\u27bf\u2300-\u23ff\u2b50-\u2b55\u203c-\u2049]/gu, "")
+    // 移除多餘空白行
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export async function generateSummary(text: string): Promise<string> {
   if (!text || text.trim() === '') {
     return '無法提供摘要：沒有可用的文字內容。';
@@ -95,10 +122,12 @@ export async function generateSummary(text: string): Promise<string> {
 
 要求：
 1. 擷取核心考點、時程、重點概念、或最重要的結論。
-2. 必須以 Markdown 格式輸出，使用條列式排版。
-3. 語氣需專業且精簡，便於大學生快速閱讀。
-4. 字數盡量控制在 500 字以內。
-5. 請直接輸出摘要內容，不要加上「好的」、「以下是摘要」等無意義的開頭。
+2. 必須以純 Markdown 格式輸出，使用清晰的階層與條列式排版。
+3. 【格式禁令】：嚴禁輸出任何 HTML 標籤（如 <h4>, <p>, <b>, <span> 等），一律使用標準 Markdown 語法（如 ###, ####, *, -）。
+4. 【視覺禁令】：嚴格遵守零表情符號（Zero-Emoji）原則，嚴禁使用任何 Emoji 圖示（如 📊, 📝, 💡, 📌, ✨ 等）。
+5. 語氣需專業且精簡，便於大學生快速閱讀。
+6. 字數盡量控制在 500 字以內。
+7. 請直接輸出摘要內容，不要加上「好的」、「以下是摘要」等無意義的開頭。
 
 以下是需要摘要的內容：
 ${text.substring(0, 15000)}
@@ -110,7 +139,8 @@ ${text.substring(0, 15000)}
       temperature: 0.5,
     });
 
-    return textOutput.trim() || '無法生成摘要。';
+    const cleaned = cleanSummaryOutput(textOutput);
+    return cleaned || '無法生成摘要。';
   } catch (error) {
     console.error('Error generating AI summary through model rotation:', error);
     return '生成摘要時發生錯誤，請稍後再試。';
