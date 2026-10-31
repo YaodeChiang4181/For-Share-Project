@@ -15,7 +15,7 @@ export default function AboutPage() {
         <p className="text-text-secondary leading-relaxed mb-8 text-left">
           我們是一群來自不同科系的大學生，深感在求學過程中，許多學長姐的優質筆記與考古題往往只能在直屬之間流傳，甚至隨著畢業而被遺忘在硬碟的深處。
           <br /><br />
-          為了打破這種資訊不對稱，我們創立了 <strong>ForShare</strong>。這是一個專為大學生打造的知識共享平台，我們相信每一份用心整理的筆記都充滿價值。在這裡，您的分享不僅能幫助到其他同學，還能透過積分系統獲得實質的回報。
+          為了這種資訊不對稱，我們創立了 <strong>ForShare</strong>。這是一個專為大學生打造的知識共享平台，我們相信每一份用心整理的筆記都充滿價值。在這裡，您的分享不僅能幫助到其他同學，還能透過積分系統獲得實質的回報。
         </p>
 
         <div className="border-t border-border pt-8 mt-8">

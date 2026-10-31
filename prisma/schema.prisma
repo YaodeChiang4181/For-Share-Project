@@ -92,7 +92,11 @@ model Post {
   content  String
   fileUrl  String? // 雲端檔案路徑 (S3)
   fileType String? // 檔案類型 (例如: application/pdf)
-  category String // 系所/標籤分類
+  category String // 系所/標籤分類 (保留相容)
+  department   String? // 系所 (例如：資管系、電機系、通識)
+  academicYear String? // 學年度 (例如：112、113-1)
+  noteType     String? // 筆記類型 (考試整理 / 上課筆記 / 考古題 / 重點摘要 / 其他)
+  aiTags       String? // AI 自動萃取的語意標籤 (JSON 字串)
 
   // 狀態: "ACTIVE" | "HIDDEN" 
   status String @default("ACTIVE")

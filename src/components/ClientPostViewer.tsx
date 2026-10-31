@@ -13,6 +13,10 @@ interface PostProps {
     content: string;
     fileUrl: string | null;
     isPaid: boolean;
+    department?: string | null;
+    academicYear?: string | null;
+    noteType?: string | null;
+    aiTags?: string | null;
     authorId: string;
     author: { name: string | null };
   };
@@ -317,6 +321,27 @@ export default function ClientPostViewer({ post, currentUserId, totalTips = 0, t
           </div>
 
           <div className="bg-surface border border-border rounded-md shadow-sm p-8 md:p-12">
+            {/* 結構化分類標籤展示 */}
+            {(post.department || post.academicYear || post.noteType) && (
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                {post.department && (
+                  <span className="px-2 py-0.5 rounded-xs text-xs font-mono bg-surface-muted border border-border text-text-secondary">
+                    [ 系所：{post.department} ]
+                  </span>
+                )}
+                {post.academicYear && (
+                  <span className="px-2 py-0.5 rounded-xs text-xs font-mono bg-surface-muted border border-border text-text-secondary">
+                    [ {post.academicYear} 學年 ]
+                  </span>
+                )}
+                {post.noteType && (
+                  <span className="px-2 py-0.5 rounded-xs text-xs font-mono bg-accent-highlight/40 border border-[#e2d593] text-text-primary">
+                    [ {post.noteType} ]
+                  </span>
+                )}
+              </div>
+            )}
+
             <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-4 leading-tight">
               {cleanNoteText(post.title)}
             </h1>

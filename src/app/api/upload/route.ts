@@ -7,7 +7,13 @@ import { NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
 import fs from "fs";
-import { generateSummary, moderateContent } from "@/lib/ai";
+import { generateSummary, moderateContent, generateTags, detectStructuredTags, StructuredTags } from "@/lib/ai";
+import {
+  sanitizeDepartment,
+  sanitizeAcademicYear,
+  sanitizeNoteType,
+  sanitizeAiTags,
+} from "@/lib/tagSanitizer";
 import { extractTextFromPDF } from "@/lib/pdfExtract";
 import { lineClient } from "@/lib/line-bot";
 
@@ -35,7 +41,10 @@ export async function POST(req: Request) {
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const isPaidStr = formData.get("isPaid") as string;
-    const tagsStr = formData.get("tags") as string;
+    const tagsStr = (formData.get("tags") as string) || "";
+    const departmentInput = (formData.get("department") as string) || "";
+    const academicYearInput = (formData.get("academicYear") as string) || "";
+    const noteTypeInput = (formData.get("noteType") as string) || "";
     const file = formData.get("file") as File;
 
     if (!title || !file) {
@@ -70,7 +79,7 @@ export async function POST(req: Request) {
       fileUrl = `data:${mimeType};base64,${base64Data}`;
     }
 
-    // --- AI 摘要懶人包處理 ---
+    // --- AI 摘要與內容提煉 ---
     let textToSummarize = content || "";
     if (originalExt.toLowerCase() === ".pdf") {
       const extractedText = await extractTextFromPDF(buffer);
@@ -91,11 +100,53 @@ export async function POST(req: Request) {
     }
     
     let finalContent = content;
+    let aiTagsJson: string | null = null;
+    let finalDepartment = departmentInput.trim();
+    let finalAcademicYear = academicYearInput.trim();
+    let finalNoteType = noteTypeInput.trim();
+
     if (textToSummarize) {
-      const aiSummary = await generateSummary(textToSummarize);
+      // 找出哪些結構化欄位未手動填寫，需要 AI 自動補位
+      const missingFields: (keyof StructuredTags)[] = [];
+      if (!finalDepartment) missingFields.push("department");
+      if (!finalAcademicYear) missingFields.push("academicYear");
+      if (!finalNoteType) missingFields.push("noteType");
+
+      // 並行執行：1. 摘要 2. 語意隱藏標籤 3. 空缺結構欄位補位
+      const [aiSummary, aiTags, detectedTags] = await Promise.all([
+        generateSummary(textToSummarize),
+        generateTags(textToSummarize),
+        missingFields.length > 0
+          ? detectStructuredTags(textToSummarize, missingFields)
+          : Promise.resolve({} as Partial<StructuredTags>),
+      ]);
+
       finalContent = `> [ 內容要點提煉 ]\n\n${aiSummary}\n\n---\n\n${content}`;
+
+      // 使用者手填優先；若未填才採納 AI 自動補位結果
+      if (!finalDepartment && detectedTags.department) {
+        finalDepartment = detectedTags.department;
+      }
+      if (!finalAcademicYear && detectedTags.academicYear) {
+        finalAcademicYear = detectedTags.academicYear;
+      }
+      if (!finalNoteType && detectedTags.noteType) {
+        finalNoteType = detectedTags.noteType;
+      }
+
+      // 安全沙箱淨化：防止 Prompt 注入、XSS 關鍵字與個資外洩
+      const safeTags = sanitizeAiTags(aiTags);
+      if (safeTags.length > 0) {
+        aiTagsJson = JSON.stringify(safeTags);
+      }
     }
-    // ----------------------
+
+    // 對所有最終欄位進行白名單與規格驗證
+    const cleanDept = sanitizeDepartment(finalDepartment);
+    const cleanYear = sanitizeAcademicYear(finalAcademicYear);
+    const cleanType = sanitizeNoteType(finalNoteType);
+
+    const compositeCategory = [cleanDept, cleanType, tagsStr].filter(Boolean).join(", ") || tagsStr || "未分類";
 
     // 使用 Transaction 確保寫入文章與給予獎勵同時成功
     const post = await prisma.$transaction(async (tx) => {
@@ -105,7 +156,11 @@ export async function POST(req: Request) {
           content: finalContent,
           isPaid,
           fileUrl,
-          category: tagsStr || "未分類",
+          category: compositeCategory,
+          department: cleanDept,
+          academicYear: cleanYear,
+          noteType: cleanType,
+          aiTags: aiTagsJson,
           authorId: session.user.id,
         },
       });

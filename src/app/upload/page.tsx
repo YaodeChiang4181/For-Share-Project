@@ -14,6 +14,9 @@ export default function UploadPage() {
     content: "",
     isPaid: true,
     tags: "",
+    department: "",
+    academicYear: "",
+    noteType: "",
   });
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState("");
@@ -50,6 +53,9 @@ export default function UploadPage() {
       submitData.append("content", formData.content);
       submitData.append("isPaid", formData.isPaid.toString());
       submitData.append("tags", formData.tags);
+      submitData.append("department", formData.department);
+      submitData.append("academicYear", formData.academicYear);
+      submitData.append("noteType", formData.noteType);
       submitData.append("file", file);
 
       const res = await fetch("/api/upload", {
@@ -164,20 +170,87 @@ export default function UploadPage() {
                 />
               </div>
 
-              {/* Tags */}
-              <div>
-                <label htmlFor="tags" className="block text-xs font-medium text-text-primary mb-1.5">
-                  系所與科目 <span className="text-error">*</span>
-                </label>
-                <input
-                  id="tags"
-                  type="text"
-                  required
-                  value={formData.tags}
-                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-sm bg-surface border border-border text-text-primary placeholder-text-tertiary focus:outline-none focus:border-text-primary transition-all text-xs"
-                  placeholder="例如：資管系, 計概 (用逗號分隔)"
-                />
+              {/* 三大結構化標籤與屬性分類 */}
+              <div className="md:col-span-2 p-4 rounded-sm bg-surface-muted/60 border border-border space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-border pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold text-text-primary">[ 筆記分類標註 ]</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-xs bg-surface border border-border text-text-secondary">
+                      手動標註優先
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-text-tertiary">
+                    * 未填項目將由 AI 在分析摘要時自動判別補齊
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* 系所 */}
+                  <div>
+                    <label htmlFor="department" className="block text-[11px] font-mono text-text-secondary mb-1">
+                      [ 系所所屬 ]
+                    </label>
+                    <input
+                      id="department"
+                      type="text"
+                      value={formData.department}
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      className="w-full px-3 py-2 rounded-sm bg-surface border border-border text-text-primary placeholder-text-tertiary focus:outline-none focus:border-text-primary transition-all text-xs font-mono"
+                      placeholder="例如：資管系 / 通識"
+                    />
+                  </div>
+
+                  {/* 學年度 */}
+                  <div>
+                    <label htmlFor="academicYear" className="block text-[11px] font-mono text-text-secondary mb-1">
+                      [ 學年度/學期 ]
+                    </label>
+                    <input
+                      id="academicYear"
+                      type="text"
+                      value={formData.academicYear}
+                      onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })}
+                      className="w-full px-3 py-2 rounded-sm bg-surface border border-border text-text-primary placeholder-text-tertiary focus:outline-none focus:border-text-primary transition-all text-xs font-mono"
+                      placeholder="例如：112 或 113-1"
+                    />
+                  </div>
+
+                  {/* 類型 */}
+                  <div>
+                    <label htmlFor="noteType" className="block text-[11px] font-mono text-text-secondary mb-1">
+                      [ 內容類型 ]
+                    </label>
+                    <select
+                      id="noteType"
+                      value={formData.noteType}
+                      onChange={(e) => setFormData({ ...formData, noteType: e.target.value })}
+                      className="w-full px-3 py-2 rounded-sm bg-surface border border-border text-text-primary focus:outline-none focus:border-text-primary transition-all text-xs font-mono"
+                    >
+                      <option value="">[ AI 自動辨識 ]</option>
+                      <option value="考試整理">考試整理</option>
+                      <option value="上課筆記">上課筆記</option>
+                      <option value="考古題">考古題</option>
+                      <option value="重點摘要">重點摘要</option>
+                      <option value="專題/作業">專題/作業</option>
+                      <option value="其他">其他</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* 補充科目或關鍵字 */}
+                <div className="pt-1">
+                  <label htmlFor="tags" className="block text-[11px] font-mono text-text-secondary mb-1">
+                    [ 科目名稱或補充關鍵詞 ]（選填）
+                  </label>
+                  <input
+                    id="tags"
+                    type="text"
+                    value={formData.tags}
+                    onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                    className="w-full px-3 py-2 rounded-sm bg-surface border border-border text-text-primary placeholder-text-tertiary focus:outline-none focus:border-text-primary transition-all text-xs font-mono"
+                    placeholder="例如：計算機概論, 演算法, 期中考重點"
+                  />
+                </div>
               </div>
 
               {/* Sharing Mode Toggle */}
