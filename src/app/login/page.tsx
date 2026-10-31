@@ -19,9 +19,11 @@ function LoginForm() {
   useEffect(() => {
     if (errorParam) {
       if (errorParam === "OAuthAccountNotLinked" || errorParam === "OAuthCallback") {
-        setError("系統偵測到帳號關聯問題。請先使用您的 Email 與密碼登入後，至「個人中心」進行 LINE 綁定！");
+        setError("系統偵測到帳號關聯問題。若您曾使用 Email 註冊，請先登入後進行帳號綁定。");
+      } else if (errorParam === "OAuthSignin") {
+        setError("Portal 登入連線發起失敗 (OAuthSignin)。請確認已重啟開發伺服器載入金鑰，或請確認 Portal 回傳網址設定完全相符。");
       } else {
-        setError("LINE 登入發生錯誤 (" + errorParam + ")");
+        setError("第三方登入發生錯誤 (" + errorParam + ")");
       }
     }
   }, [errorParam]);

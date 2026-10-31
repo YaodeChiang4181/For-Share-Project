@@ -23,18 +23,22 @@ export interface NCUProfile {
   [key: string]: any;
 }
 
-export function NcuProvider(options: { clientId: string; clientSecret: string }): OAuthConfig<NCUProfile> {
+export function NcuProvider(options?: { clientId?: string; clientSecret?: string }): OAuthConfig<NCUProfile> {
+  const clientId = options?.clientId || process.env.NCU_CLIENT_ID || "20261031220404GEWxNKrY6hCl";
+  const clientSecret = options?.clientSecret || process.env.NCU_CLIENT_SECRET || "zbYbxjLdq1ifm0PQsq8Q5JJuGy5k1mXm4xNmGF9SDFDvqvF";
+
   return {
     id: "ncu",
     name: "中央大學 Portal",
     type: "oauth",
+    version: "2.0",
     authorization: {
       url: "https://portal.ncu.edu.tw/oauth2/authorization",
       params: {
         scope: "identifier chinese-name student-id academy-records email",
-        response_type: "code",
       },
     },
+    checks: ["state"],
     token: {
       url: "https://portal.ncu.edu.tw/oauth2/token",
       async request({ params, provider }) {
@@ -80,8 +84,8 @@ export function NcuProvider(options: { clientId: string; clientSecret: string })
         return data;
       },
     },
-    clientId: options.clientId,
-    clientSecret: options.clientSecret,
+    clientId,
+    clientSecret,
     allowDangerousEmailAccountLinking: true,
     profile(profile: NCUProfile) {
       const studentId = profile["student-id"] || profile.identifier;
