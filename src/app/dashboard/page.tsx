@@ -23,6 +23,7 @@ export default async function DashboardPage() {
     user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
+        profile: true,
         _count: {
           select: { posts: true, comments: true },
         },
@@ -124,9 +125,16 @@ export default async function DashboardPage() {
           <span className="text-xs font-mono tracking-wider text-text-tertiary uppercase block mb-1">
             [ DASHBOARD // 個人儀表板 ]
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-1">
-            嗨，{user.name}
-          </h1>
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
+              嗨，{user.profile?.realName || user.name}
+            </h1>
+            {user.profile?.university && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-xs bg-[#6B1C23]/10 text-[#6B1C23] border border-[#6B1C23]/25 font-mono text-[11px] font-bold tracking-tight">
+                [ 校園認證 // {user.profile.university}{user.profile.department ? ` · ${user.profile.department}` : ""} ]
+              </span>
+            )}
+          </div>
           <p className="text-xs text-text-secondary">
             歡迎回到 ForShare 校園知識庫。
           </p>

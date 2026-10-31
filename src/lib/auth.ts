@@ -1,13 +1,113 @@
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import type { NextAuthOptions } from "next-auth";
+import type { OAuthConfig } from "next-auth/providers/oauth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import LineProvider from "next-auth/providers/line";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 
+export interface NCUProfile {
+  id?: string | number;
+  identifier?: string;
+  "chinese-name"?: string;
+  "english-name"?: string;
+  "student-id"?: string;
+  email?: string;
+  "academy-records"?: Array<{
+    name?: string;
+    unit?: string;
+    studyName?: string;
+    studentStatus?: string;
+    [key: string]: any;
+  }>;
+  [key: string]: any;
+}
+
+export function NcuProvider(options: { clientId: string; clientSecret: string }): OAuthConfig<NCUProfile> {
+  return {
+    id: "ncu",
+    name: "中央大學 Portal",
+    type: "oauth",
+    authorization: {
+      url: "https://portal.ncu.edu.tw/oauth2/authorization",
+      params: {
+        scope: "identifier chinese-name student-id academy-records email",
+        response_type: "code",
+      },
+    },
+    token: {
+      url: "https://portal.ncu.edu.tw/oauth2/token",
+      async request({ params, provider }) {
+        // NCU Portal 規定 Token 請求必須使用 HTTP Basic Authentication 與 Accept: application/json
+        const basicAuth = Buffer.from(
+          `${provider.clientId}:${provider.clientSecret}`
+        ).toString("base64");
+
+        const body = new URLSearchParams({
+          grant_type: "authorization_code",
+          code: params.code as string,
+          redirect_uri: provider.callbackUrl,
+        });
+
+        const res = await fetch("https://portal.ncu.edu.tw/oauth2/token", {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${basicAuth}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+            Accept: "application/json",
+          },
+          body: body.toString(),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          console.error("[NCU Token Error]", data);
+          throw new Error(data.error_description || data.error || "NCU Token Request Failed");
+        }
+        return { tokens: data };
+      },
+    },
+    userinfo: {
+      url: "https://portal.ncu.edu.tw/apis/oauth/v1/info",
+      async request({ tokens }) {
+        const res = await fetch("https://portal.ncu.edu.tw/apis/oauth/v1/info", {
+          headers: {
+            Authorization: `Bearer ${tokens.access_token}`,
+            Accept: "application/json",
+          },
+        });
+        const data = await res.json();
+        return data;
+      },
+    },
+    clientId: options.clientId,
+    clientSecret: options.clientSecret,
+    allowDangerousEmailAccountLinking: true,
+    profile(profile: NCUProfile) {
+      const studentId = profile["student-id"] || profile.identifier;
+      const ncuId = String(profile.id || profile.identifier || studentId || "");
+      const name = profile["chinese-name"] || profile["english-name"] || studentId || "中大學生";
+      const email = profile.email || (studentId ? `${studentId}@cc.ncu.edu.tw` : `${ncuId}@ncu.edu.tw`);
+
+      return {
+        id: ncuId,
+        name,
+        email,
+        image: null,
+        role: "FREE",
+        points: 0,
+      };
+    },
+  };
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
   providers: [
+    NcuProvider({
+      clientId: process.env.NCU_CLIENT_ID || "",
+      clientSecret: process.env.NCU_CLIENT_SECRET || "",
+    }),
     LineProvider({
       clientId: process.env.LINE_CLIENT_ID || "",
       clientSecret: process.env.LINE_CLIENT_SECRET || "",
@@ -67,14 +167,51 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "line") {
         // 更新 user 中的 lineId
         if (user?.id) {
-           try {
-             await prisma.user.update({
-               where: { id: user.id },
-               data: { lineId: account.providerAccountId }
-             });
-           } catch (err) {
-             console.error("LINE ID 綁定失敗", err);
-           }
+          try {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { lineId: account.providerAccountId },
+            });
+          } catch (err) {
+            console.error("LINE ID 綁定失敗", err);
+          }
+        }
+      } else if (account?.provider === "ncu") {
+        if (user?.id) {
+          try {
+            const p = (profile || {}) as NCUProfile;
+            const studentId = p["student-id"] || p.identifier;
+            const realName = p["chinese-name"] || user.name;
+            let department = "";
+
+            const academy = p["academy-records"];
+            if (Array.isArray(academy) && academy.length > 0) {
+              department = academy[0].name || academy[0].unit || academy[0].studyName || "";
+            } else if (academy && typeof academy === "object") {
+              department = (academy as any).name || (academy as any).unit || "";
+            }
+
+            // 同步或創建 UserProfile，自動記錄中央大學學籍與科系
+            await prisma.userProfile.upsert({
+              where: { userId: user.id },
+              update: {
+                university: "國立中央大學",
+                ...(realName ? { realName } : {}),
+                ...(studentId ? { studentId } : {}),
+                ...(department ? { department } : {}),
+              },
+              create: {
+                userId: user.id,
+                university: "國立中央大學",
+                realName: realName || null,
+                studentId: studentId || null,
+                department: department || null,
+              },
+            });
+            console.log(`[NCU Portal SSO] 使用者 ${user.id} (${realName}, ${studentId}, ${department}) 登入成功並更新學籍！`);
+          } catch (profileErr) {
+            console.error("更新 NCU UserProfile 失敗", profileErr);
+          }
         }
       }
       return true;

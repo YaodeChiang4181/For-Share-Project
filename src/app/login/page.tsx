@@ -156,12 +156,24 @@ function LoginForm() {
               </div>
             </div>
             
+            {/* 中央大學 Portal SSO 登入按鈕 */}
             <button
-              onClick={() => signIn("line", { callbackUrl: "/dashboard" })}
-              className="mt-4 w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-[#00B900] text-white hover:bg-[#009900] transition-colors font-medium shadow-lg shadow-[#00B900]/20"
+              type="button"
+              onClick={() => signIn("ncu", { callbackUrl: "/dashboard" })}
+              className="mt-4 w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-[#6B1C23] text-white hover:bg-[#52151B] transition-colors font-medium shadow-md shadow-[#6B1C23]/20 cursor-pointer"
             >
-              <div className="font-bold text-lg">L</div>
-              使用 LINE 登入/註冊
+              <span className="font-mono text-xs font-bold bg-white/20 px-2 py-0.5 rounded-xs tracking-wider">NCU</span>
+              <span>使用中央大學 Portal 登入</span>
+            </button>
+
+            {/* LINE 登入 */}
+            <button
+              type="button"
+              onClick={() => signIn("line", { callbackUrl: "/dashboard" })}
+              className="mt-3 w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-[#00B900] text-white hover:bg-[#009900] transition-colors font-medium shadow-md shadow-[#00B900]/20 cursor-pointer"
+            >
+              <div className="font-bold text-lg leading-none">L</div>
+              <span>使用 LINE 帳號登入</span>
             </button>
           </div>
 
