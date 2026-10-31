@@ -4,8 +4,19 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateSummary } from "@/lib/ai";
+import { generateSummary, generateTags } from "@/lib/ai";
 import { extractTextFromPDF } from "@/lib/pdfExtract";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { sanitizeAiTags } from "@/lib/tagSanitizer";
+
+const s3 = process.env.S3_ENDPOINT ? new S3Client({
+  region: "auto",
+  endpoint: process.env.S3_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "",
+  }
+}) : null;
 
 export async function POST(req: Request) {
   try {
@@ -60,8 +71,32 @@ export async function POST(req: Request) {
           if (pdfText && pdfText.trim().length > 30) {
             textToSummarize = pdfText.trim();
           }
+        } else if (s3 && process.env.S3_ENDPOINT && post.fileUrl.startsWith(process.env.S3_ENDPOINT)) {
+          // 從 Cloudflare R2 / S3 私有端點透過 SDK 安全讀取
+          const bucketAndKey = post.fileUrl.replace(process.env.S3_ENDPOINT + "/", "");
+          const bucketName = process.env.S3_BUCKET_NAME || "";
+          let key = bucketAndKey;
+          if (key.startsWith(bucketName + "/")) {
+            key = key.replace(bucketName + "/", "");
+          }
+
+          console.log(`[Regenerate] 正在從 R2/S3 下載 PDF: Bucket="${bucketName}", Key="${key}"`);
+          const s3Res = await s3.send(new GetObjectCommand({
+            Bucket: bucketName,
+            Key: key,
+          }));
+
+          const byteArray = await s3Res.Body?.transformToByteArray();
+          if (byteArray) {
+            const buffer = Buffer.from(byteArray);
+            const pdfText = await extractTextFromPDF(buffer);
+            if (pdfText && pdfText.trim().length > 30) {
+              textToSummarize = pdfText.trim();
+              console.log(`[Regenerate] 成功從 PDF 萃取出 ${pdfText.length} 個字元！`);
+            }
+          }
         } else if (post.fileUrl.toLowerCase().includes(".pdf")) {
-          // 外部 URL (如 R2/S3)
+          // 一般公開 URL 的 fallback
           const res = await fetch(post.fileUrl);
           if (res.ok) {
             const arrayBuffer = await res.arrayBuffer();
@@ -80,9 +115,12 @@ export async function POST(req: Request) {
       textToSummarize = post.title;
     }
 
-    // 3. 呼叫多模型降級輪迴機制進行摘要生成
-    console.log(`[Regenerate Summary] 開始為筆記 ${postId} 重新提煉摘要...`);
-    const newSummary = await generateSummary(textToSummarize);
+    // 3. 呼叫多模型降級輪迴機制進行摘要與語意標籤生成
+    console.log(`[Regenerate Summary] 開始為筆記 ${postId} 重新提煉摘要 (內文長度: ${textToSummarize.length})...`);
+    const [newSummary, newTags] = await Promise.all([
+      generateSummary(textToSummarize),
+      generateTags(textToSummarize),
+    ]);
 
     if (newSummary.includes("生成摘要時發生錯誤") || newSummary.includes("無法提供摘要")) {
       return NextResponse.json({
@@ -93,10 +131,15 @@ export async function POST(req: Request) {
 
     // 4. 重構最終內文並寫入資料庫
     const finalContent = `> [ 內容要點提煉 ]\n\n${newSummary}\n\n---\n\n${originalBody || post.title}`;
+    const safeTags = sanitizeAiTags(newTags);
+    const updateData: any = { content: finalContent };
+    if (safeTags.length > 0) {
+      updateData.aiTags = JSON.stringify(safeTags);
+    }
 
     await prisma.post.update({
       where: { id: postId },
-      data: { content: finalContent },
+      data: updateData,
     });
 
     console.log(`[Regenerate Summary] 筆記 ${postId} 摘要重新提煉並更新成功！`);
