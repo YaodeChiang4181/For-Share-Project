@@ -62,7 +62,7 @@ export default function LineBindingModal({ isOpen, onClose, onSuccess }: Props) 
       const res = await fetch("/api/user/line-bind-code");
       const data = await res.json();
       if (data.isLinked) {
-        setStatusMsg("🎉 恭喜！LINE 官方帳號已成功連動！");
+        setStatusMsg("[ 連動成功 ] LINE 官方帳號已成功連動！");
         await update(); // 刷新前端 Session 狀態
         if (onSuccess) onSuccess();
         setTimeout(() => {
@@ -168,7 +168,7 @@ export default function LineBindingModal({ isOpen, onClose, onSuccess }: Props) 
           {/* Status Message */}
           {statusMsg && (
             <div className={`p-2.5 rounded-sm text-xs font-mono ${
-              statusMsg.includes("🎉") 
+              statusMsg.includes("[ 連動成功 ]") 
                 ? "bg-success/10 text-success border border-success/30" 
                 : "bg-error/10 text-error border border-error/30"
             }`}>

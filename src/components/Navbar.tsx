@@ -145,23 +145,22 @@ export default function Navbar() {
 
                         {/* Campus verification status */}
                         {(session.user as any)?.isCampusVerified ? (
-                          <div className="mt-2 flex items-center gap-1.5 px-2 py-1 rounded-xs bg-[#6B1C23]/10 text-[#6B1C23] border border-[#6B1C23]/25 font-mono text-[10px] font-bold">
-                            <span>🎓</span>
+                          <div className="mt-2 flex items-center px-2 py-1 rounded-xs bg-[#6B1C23]/10 text-[#6B1C23] border border-[#6B1C23]/25 font-mono text-[10px] font-bold">
                             <span className="truncate">
-                              {(session.user as any)?.university || "國立中央大學"}
-                              {(session.user as any)?.department ? ` · ${(session.user as any).department}` : ""}
+                              [ 校園認證 // {(session.user as any)?.university || "國立中央大學"}
+                              {(session.user as any)?.department ? ` · ${(session.user as any).department}` : ""} ]
                             </span>
                           </div>
                         ) : (
                           <div className="mt-2 flex items-center justify-between px-2 py-1 rounded-xs bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[10px] font-mono">
-                            <span>⚠️ 校園身分未認證</span>
+                            <span>[ 未認證校園身分 ]</span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setProfileMenuOpen(false);
                                 signIn("ncu");
                               }}
-                              className="underline hover:text-amber-700 font-bold"
+                              className="underline hover:text-amber-700 font-bold ml-2"
                             >
                               認證中大
                             </button>
@@ -235,35 +234,35 @@ export default function Navbar() {
                         <Link
                           href="/dashboard"
                           onClick={() => setProfileMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-muted rounded-xs transition-colors"
+                          className="flex items-center justify-between px-3 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-muted rounded-xs transition-colors"
                         >
-                          <span className="text-sm">📊</span>
                           <span>個人儀表板</span>
+                          <span className="font-mono text-[11px] text-text-tertiary">→</span>
                         </Link>
                         <Link
                           href="/upload"
                           onClick={() => setProfileMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-muted rounded-xs transition-colors"
+                          className="flex items-center justify-between px-3 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-muted rounded-xs transition-colors"
                         >
-                          <span className="text-sm">📝</span>
                           <span>上傳筆記講義</span>
+                          <span className="font-mono text-[11px] text-text-tertiary">→</span>
                         </Link>
                         <Link
                           href="/shop"
                           onClick={() => setProfileMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-muted rounded-xs transition-colors"
+                          className="flex items-center justify-between px-3 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-muted rounded-xs transition-colors"
                         >
-                          <span className="text-sm">🛍️</span>
                           <span>積分兌換商城</span>
+                          <span className="font-mono text-[11px] text-text-tertiary">→</span>
                         </Link>
                         {(session.user as any)?.role === "ADMIN" && (
                           <Link
                             href="/admin"
                             onClick={() => setProfileMenuOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-1.5 font-medium text-error hover:bg-surface-muted rounded-xs transition-colors"
+                            className="flex items-center justify-between px-3 py-1.5 font-medium text-error hover:bg-surface-muted rounded-xs transition-colors"
                           >
-                            <span className="text-sm">🛡️</span>
                             <span>營運管理後台</span>
+                            <span className="font-mono text-[11px] text-error">→</span>
                           </Link>
                         )}
                       </div>
@@ -272,10 +271,10 @@ export default function Navbar() {
                       <div className="p-1 border-t border-border">
                         <button
                           onClick={() => signOut({ callbackUrl: "/" })}
-                          className="w-full text-left flex items-center gap-2.5 px-3 py-1.5 text-error hover:bg-surface-muted rounded-xs transition-colors"
+                          className="w-full text-left flex items-center justify-between px-3 py-1.5 text-error hover:bg-surface-muted rounded-xs transition-colors"
                         >
-                          <span className="text-sm">🚪</span>
                           <span>登出帳號</span>
+                          <span className="font-mono text-[11px] text-error">✕</span>
                         </button>
                       </div>
                     </div>

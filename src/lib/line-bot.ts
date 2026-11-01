@@ -476,7 +476,7 @@ export async function handleWebhookEvent(event: WebhookEvent) {
       replyToken,
       messages: [{
         type: "text",
-        text: `🎉 [ 綁定成功 ]\n\n${displayName} 您好！\n您的 ForShare 帳號已成功與此 LINE 帳號完成連動。\n\n未來您的筆記打賞、點數入帳與留言互動，都將在此即時推播通知！`,
+        text: `[ 綁定成功 ]\n\n${displayName} 您好！\n您的 ForShare 帳號已成功與此 LINE 帳號完成連動。\n\n未來您的筆記打賞、點數入帳與留言互動，都將在此即時推播通知！`,
       }],
     });
     return;
