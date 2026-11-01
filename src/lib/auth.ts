@@ -445,26 +445,49 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = (user as any).role || "FREE";
-        token.points = (user as any).points || 0;
+    async jwt({ token, user, trigger }) {
+      const targetId = user?.id || token.id;
+      if (user || trigger === "update") {
+        if (user) {
+          token.id = user.id;
+          token.role = (user as any).role || "FREE";
+          token.points = (user as any).points || 0;
+        }
 
         try {
           const dbUser = await prisma.user.findFirst({
             where: {
               OR: [
-                { id: user.id },
-                ...(user.email ? [{ email: user.email }] : [])
+                ...(targetId ? [{ id: targetId as string }] : []),
+                ...(user?.email ? [{ email: user.email }] : [])
               ]
             },
-            select: { id: true, role: true, points: true }
+            select: { 
+              id: true, 
+              name: true,
+              role: true, 
+              points: true,
+              lineId: true,
+              profile: {
+                select: {
+                  university: true,
+                  department: true,
+                  studentId: true,
+                  realName: true,
+                }
+              }
+            }
           });
           if (dbUser) {
             token.id = dbUser.id;
             token.role = dbUser.role || "FREE";
             token.points = dbUser.points ?? 0;
+            token.hasLineLinked = !!dbUser.lineId;
+            token.isCampusVerified = !!dbUser.profile?.university;
+            token.university = dbUser.profile?.university || null;
+            token.department = dbUser.profile?.department || null;
+            token.studentId = dbUser.profile?.studentId || null;
+            token.realName = dbUser.profile?.realName || null;
           }
         } catch {
           // ignore
@@ -474,9 +497,15 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as { id: string }).id = token.id as string;
-        (session.user as { role: string }).role = token.role as string;
-        (session.user as { points: number }).points = token.points as number;
+        (session.user as any).id = token.id as string;
+        (session.user as any).role = token.role as string;
+        (session.user as any).points = token.points as number;
+        (session.user as any).hasLineLinked = !!token.hasLineLinked;
+        (session.user as any).isCampusVerified = !!token.isCampusVerified;
+        (session.user as any).university = token.university || null;
+        (session.user as any).department = token.department || null;
+        (session.user as any).studentId = token.studentId || null;
+        (session.user as any).realName = token.realName || null;
       }
       return session;
     },

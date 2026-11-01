@@ -422,6 +422,66 @@ export async function handleWebhookEvent(event: WebhookEvent) {
   if (!isText) return null;
 
   // 以下為原本的文字指令處理
+  // 指令：綁定帳號 (支援 "綁定 123456" 或 "綁定123456")
+  const bindMatch = text.trim().match(/^綁定\s*(\d{6})$/);
+  if (bindMatch) {
+    const code = bindMatch[1];
+    const tokenRecord = await prisma.verificationToken.findFirst({
+      where: {
+        token: code,
+        expires: { gt: new Date() },
+        identifier: { startsWith: "line_bind:" },
+      },
+    });
+
+    if (!tokenRecord) {
+      await lineClient.replyMessage({
+        replyToken,
+        messages: [{
+          type: "text",
+          text: "[ 綁定失敗 ] 驗證碼錯誤或已過期。\n請至 ForShare 網站個人選單重新取得 6 位數綁定碼。",
+        }],
+      });
+      return;
+    }
+
+    const userId = tokenRecord.identifier.replace("line_bind:", "");
+
+    // 檢查此 LINE ID 是否已被其他帳號綁定，若有則先解除舊帳號
+    const existing = await prisma.user.findUnique({
+      where: { lineId: lineUserId },
+    });
+
+    if (existing && existing.id !== userId) {
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: { lineId: null },
+      });
+    }
+
+    const targetUser = await prisma.user.update({
+      where: { id: userId },
+      data: { lineId: lineUserId },
+      include: { profile: true },
+    });
+
+    // 刪除已使用之驗證碼
+    await prisma.verificationToken.deleteMany({
+      where: { identifier: tokenRecord.identifier },
+    });
+
+    const displayName = targetUser.profile?.realName || targetUser.name || "同學";
+
+    await lineClient.replyMessage({
+      replyToken,
+      messages: [{
+        type: "text",
+        text: `🎉 [ 綁定成功 ]\n\n${displayName} 您好！\n您的 ForShare 帳號已成功與此 LINE 帳號完成連動。\n\n未來您的筆記打賞、點數入帳與留言互動，都將在此即時推播通知！`,
+      }],
+    });
+    return;
+  }
+
   // 隱藏指令：綁定管理員身分
   if (text === "我是管理員 123456") {
     let user = await prisma.user.findUnique({

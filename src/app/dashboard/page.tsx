@@ -3,7 +3,6 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import LineBindButton from "@/components/LineBindButton";
 
 export const dynamic = "force-dynamic";
 
@@ -218,9 +217,25 @@ export default async function DashboardPage() {
                 <span className="font-mono text-xs text-text-tertiary group-hover:text-text-primary transition-colors">→</span>
               </Link>
               
-              {/* LINE 綁定按鈕 */}
+              {/* LINE 推播狀態提示 */}
               <div className="pt-2">
-                <LineBindButton isLinked={!!user.lineId} />
+                <div className="p-3 rounded-sm bg-surface-muted/60 border border-border flex items-center justify-between text-xs">
+                  <div>
+                    <p className="font-bold text-text-primary">
+                      {user.lineId ? "LINE 即時推播已啟用" : "LINE 官方推播通知"}
+                    </p>
+                    <p className="text-[11px] text-text-tertiary">
+                      {user.lineId ? "筆記收益與留言將即時傳送至手機" : "點擊右上角個人選單可隨時連動綁定"}
+                    </p>
+                  </div>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-xs font-bold border ${
+                    user.lineId 
+                      ? "bg-success/10 text-success border-success/20" 
+                      : "bg-[#06C755]/10 text-[#06C755] border-[#06C755]/25"
+                  }`}>
+                    {user.lineId ? "✓ 已連動" : "右上角連動"}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

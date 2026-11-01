@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut, signIn } from "next-auth/react";
+import LineBindingModal from "@/components/LineBindingModal";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [lineModalOpen, setLineModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 15);
@@ -121,35 +123,161 @@ export default function Navbar() {
 
                   {/* Dropdown */}
                   {profileMenuOpen && (
-                    <div className="absolute right-0 top-full mt-1.5 w-48 bg-surface border border-border rounded-sm shadow-md py-1 overflow-hidden text-xs">
-                      <Link
-                        href="/dashboard"
-                        className="block px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors"
-                      >
-                        個人中心
-                      </Link>
-                      {(session.user as any)?.role === "ADMIN" ? (
+                    <div 
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute right-0 top-full mt-2 w-72 bg-surface border border-border rounded-md shadow-xl py-2 overflow-hidden text-xs z-50 animate-in fade-in zoom-in-95 duration-150"
+                    >
+                      {/* User Header */}
+                      <div className="px-4 py-2 border-b border-border bg-surface-muted/40">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-text-primary text-sm truncate">
+                            {(session.user as any)?.realName || session.user.name}
+                          </span>
+                          {(session.user as any)?.role === "ADMIN" && (
+                            <span className="px-1.5 py-0.5 rounded-xs text-[10px] font-mono bg-error/10 text-error border border-error/20 font-bold">
+                              管理員
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-text-tertiary truncate">
+                          {(session.user as any)?.studentId ? `學號：${(session.user as any).studentId}` : session.user.email}
+                        </p>
+
+                        {/* Campus verification status */}
+                        {(session.user as any)?.isCampusVerified ? (
+                          <div className="mt-2 flex items-center gap-1.5 px-2 py-1 rounded-xs bg-[#6B1C23]/10 text-[#6B1C23] border border-[#6B1C23]/25 font-mono text-[10px] font-bold">
+                            <span>🎓</span>
+                            <span className="truncate">
+                              {(session.user as any)?.university || "國立中央大學"}
+                              {(session.user as any)?.department ? ` · ${(session.user as any).department}` : ""}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="mt-2 flex items-center justify-between px-2 py-1 rounded-xs bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[10px] font-mono">
+                            <span>⚠️ 校園身分未認證</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setProfileMenuOpen(false);
+                                signIn("ncu");
+                              }}
+                              className="underline hover:text-amber-700 font-bold"
+                            >
+                              認證中大
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Points badge */}
+                        <div className="mt-2 flex items-center justify-between text-[11px] font-mono bg-surface px-2.5 py-1 rounded-xs border border-border">
+                          <span className="text-text-tertiary">目前可用點數</span>
+                          <span className="font-bold text-primary">{(session.user as any)?.points ?? 0} PTS</span>
+                        </div>
+                      </div>
+
+                      {/* Integrations */}
+                      <div className="px-4 py-2.5 border-b border-border">
+                        <span className="text-[10px] font-mono text-text-tertiary uppercase block mb-1.5">
+                          [ 帳號連動 // INTEGRATIONS ]
+                        </span>
+                        
+                        {/* LINE Integration */}
+                        <div className="flex items-center justify-between py-1">
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <span className="w-2 h-2 rounded-full bg-[#06C755]" />
+                            <span className="text-text-secondary">LINE 官方帳號</span>
+                          </div>
+                          {(session.user as any)?.hasLineLinked ? (
+                            <span className="font-mono text-[10px] text-success font-bold bg-success/10 px-1.5 py-0.5 rounded-xs border border-success/20">
+                              ✓ 已連動
+                            </span>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setProfileMenuOpen(false);
+                                setLineModalOpen(true);
+                              }}
+                              className="font-mono text-[10px] text-primary hover:underline font-bold"
+                            >
+                              + 連動通知
+                            </button>
+                          )}
+                        </div>
+
+                        {/* NCU Portal Integration */}
+                        <div className="flex items-center justify-between py-1">
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <span className="w-2 h-2 rounded-full bg-[#6B1C23]" />
+                            <span className="text-text-secondary">中大 Portal 學籍</span>
+                          </div>
+                          {(session.user as any)?.isCampusVerified ? (
+                            <span className="font-mono text-[10px] text-[#6B1C23] font-bold bg-[#6B1C23]/10 px-1.5 py-0.5 rounded-xs border border-[#6B1C23]/25">
+                              ✓ 已核驗
+                            </span>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setProfileMenuOpen(false);
+                                signIn("ncu");
+                              }}
+                              className="font-mono text-[10px] text-primary hover:underline font-bold"
+                            >
+                              + 驗證學籍
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Quick Actions */}
+                      <div className="px-1.5 py-1">
                         <Link
-                          href="/admin"
-                          className="block px-4 py-2 font-medium text-error hover:bg-surface-muted transition-colors"
+                          href="/dashboard"
+                          onClick={() => setProfileMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-muted rounded-xs transition-colors"
                         >
-                          營運管理後台
+                          <span className="text-sm">📊</span>
+                          <span>個人儀表板</span>
                         </Link>
-                      ) : (
                         <Link
                           href="/upload"
-                          className="block px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors"
+                          onClick={() => setProfileMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-muted rounded-xs transition-colors"
                         >
-                          上傳筆記
+                          <span className="text-sm">📝</span>
+                          <span>上傳筆記講義</span>
                         </Link>
-                      )}
-                      <div className="border-t border-border my-1" />
-                      <button
-                        onClick={() => signOut({ callbackUrl: "/" })}
-                        className="w-full text-left px-4 py-2 text-error hover:bg-surface-muted transition-colors"
-                      >
-                        登出帳號
-                      </button>
+                        <Link
+                          href="/shop"
+                          onClick={() => setProfileMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-1.5 text-text-secondary hover:text-text-primary hover:bg-surface-muted rounded-xs transition-colors"
+                        >
+                          <span className="text-sm">🛍️</span>
+                          <span>積分兌換商城</span>
+                        </Link>
+                        {(session.user as any)?.role === "ADMIN" && (
+                          <Link
+                            href="/admin"
+                            onClick={() => setProfileMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-1.5 font-medium text-error hover:bg-surface-muted rounded-xs transition-colors"
+                          >
+                            <span className="text-sm">🛡️</span>
+                            <span>營運管理後台</span>
+                          </Link>
+                        )}
+                      </div>
+
+                      {/* Sign Out */}
+                      <div className="p-1 border-t border-border">
+                        <button
+                          onClick={() => signOut({ callbackUrl: "/" })}
+                          className="w-full text-left flex items-center gap-2.5 px-3 py-1.5 text-error hover:bg-surface-muted rounded-xs transition-colors"
+                        >
+                          <span className="text-sm">🚪</span>
+                          <span>登出帳號</span>
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -226,11 +354,24 @@ export default function Navbar() {
               <>
                 <Link
                   href="/dashboard"
-                  className="px-3 py-2 rounded-sm text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors"
+                  className="px-3 py-2 rounded-sm text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors flex items-center justify-between"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  個人中心
+                  <span>個人儀表板</span>
+                  <span className="font-mono text-primary font-bold">{(session.user as any)?.points ?? 0} PTS</span>
                 </Link>
+                {!(session.user as any)?.hasLineLinked && (
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setLineModalOpen(true);
+                    }}
+                    className="px-3 py-2 rounded-sm text-left text-success hover:bg-surface-muted transition-colors font-medium flex items-center justify-between"
+                  >
+                    <span>+ 連動 LINE 官方帳號</span>
+                    <span className="text-[10px] font-mono bg-success/10 px-1.5 py-0.5 rounded-xs">即時通知</span>
+                  </button>
+                )}
                 {(session.user as any)?.role === "ADMIN" && (
                   <Link
                     href="/admin"
@@ -268,6 +409,12 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* LINE 綁定彈窗 */}
+      <LineBindingModal
+        isOpen={lineModalOpen}
+        onClose={() => setLineModalOpen(false)}
+      />
     </nav>
   );
 }
