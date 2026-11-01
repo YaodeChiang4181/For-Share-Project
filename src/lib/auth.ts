@@ -24,8 +24,13 @@ export interface NCUProfile {
 }
 
 export function NcuProvider(options?: { clientId?: string; clientSecret?: string }): OAuthConfig<NCUProfile> {
-  const clientId = options?.clientId || process.env.NCU_CLIENT_ID || "20261031220404GEWxNKrY6hCl";
-  const clientSecret = options?.clientSecret || process.env.NCU_CLIENT_SECRET || "zbYbxjLdq1ifm0PQsq8Q5JJuGy5k1mXm4xNmGF9SDFDvqvF";
+  const envClientId = process.env.NCU_CLIENT_ID?.trim();
+  const envClientSecret = process.env.NCU_CLIENT_SECRET?.trim();
+  const optClientId = options?.clientId?.trim();
+  const optClientSecret = options?.clientSecret?.trim();
+
+  const clientId = optClientId || envClientId || "20261031220404GEWxNKrY6hCl";
+  const clientSecret = optClientSecret || envClientSecret || "zbYbxjLdq1ifm0PQsq8Q5JJuGy5k1mXm4xNmGF9SDFDvqvF";
 
   return {
     id: "ncu",
@@ -53,6 +58,12 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
           redirect_uri: provider.callbackUrl,
         });
 
+        console.log("[NCU Portal] 發起 Token 兌換:", {
+          callbackUrl: provider.callbackUrl,
+          hasCode: Boolean(params.code),
+          clientId: provider.clientId,
+        });
+
         const res = await fetch("https://portal.ncu.edu.tw/oauth2/token", {
           method: "POST",
           headers: {
@@ -63,24 +74,69 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
           body: body.toString(),
         });
 
-        const data = await res.json();
-        if (!res.ok) {
-          console.error("[NCU Token Error]", data);
-          throw new Error(data.error_description || data.error || "NCU Token Request Failed");
+        const rawText = await res.text();
+        let data: any = {};
+        try {
+          data = JSON.parse(rawText);
+        } catch {
+          console.error("[NCU Token Error] 回傳非 JSON 內容:", { status: res.status, rawText });
+          throw new Error(`NCU Token 端點回應異常 (HTTP ${res.status}): ${rawText.slice(0, 150)}`);
         }
+
+        // 注意：NCU Portal 發生錯誤（如 Code 無效或回傳網址不符）時可能回傳 HTTP 200 配 {"error":"..."}
+        if (!res.ok || data.error || !data.access_token) {
+          console.error("[NCU Token Error] 兌換 Access Token 失敗:", {
+            status: res.status,
+            data,
+            callbackUrl: provider.callbackUrl,
+          });
+          const errorMsg = data.error_description || data.error || "無法取得 NCU Access Token";
+          throw new Error(errorMsg);
+        }
+
+        console.log("[NCU Portal] Access Token 取得成功！");
         return { tokens: data };
       },
     },
     userinfo: {
       url: "https://portal.ncu.edu.tw/apis/oauth/v1/info",
       async request({ tokens }) {
+        if (!tokens.access_token) {
+          console.error("[NCU UserInfo Error] 缺少 access_token");
+          throw new Error("NCU UserInfo 要求失敗：缺少 access_token");
+        }
+
         const res = await fetch("https://portal.ncu.edu.tw/apis/oauth/v1/info", {
           headers: {
             Authorization: `Bearer ${tokens.access_token}`,
             Accept: "application/json",
           },
         });
-        const data = await res.json();
+
+        const rawText = await res.text();
+        if (!rawText || rawText.trim() === "") {
+          console.error("[NCU UserInfo Error] Portal 回傳空內容 (HTTP " + res.status + ")");
+          throw new Error(`NCU UserInfo 端點回傳空字串 (HTTP ${res.status})，請確認權限或 Token 有效性`);
+        }
+
+        let data: any = {};
+        try {
+          data = JSON.parse(rawText);
+        } catch {
+          console.error("[NCU UserInfo Error] 回傳非 JSON 內容:", { status: res.status, rawText });
+          throw new Error(`NCU UserInfo 非有效 JSON: ${rawText.slice(0, 150)}`);
+        }
+
+        if (!res.ok || data.error) {
+          console.error("[NCU UserInfo Error] 取得個人資料失敗:", { status: res.status, data });
+          throw new Error(data.error_description || data.error || "NCU UserInfo 請求失敗");
+        }
+
+        console.log("[NCU Portal] 成功獲取中大使用者資料:", {
+          identifier: data.identifier,
+          name: data["chinese-name"] || data["english-name"],
+        });
+
         return data;
       },
     },
@@ -101,12 +157,6 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
         role: "FREE",
         points: 0,
       };
-    },
-    options: {
-      clientId,
-      clientSecret,
-      allowDangerousEmailAccountLinking: true,
-      ...options,
     },
   };
 }
@@ -175,10 +225,7 @@ const authAdapter: any = {
 export const authOptions: NextAuthOptions = {
   adapter: authAdapter,
   providers: [
-    NcuProvider({
-      clientId: process.env.NCU_CLIENT_ID || "",
-      clientSecret: process.env.NCU_CLIENT_SECRET || "",
-    }),
+    NcuProvider(),
     LineProvider({
       clientId: process.env.LINE_CLIENT_ID || "",
       clientSecret: process.env.LINE_CLIENT_SECRET || "",
@@ -250,36 +297,48 @@ export const authOptions: NextAuthOptions = {
       } else if (account?.provider === "ncu") {
         if (user?.id) {
           try {
-            const p = (profile || {}) as NCUProfile;
-            const studentId = p["student-id"] || p.identifier;
-            const realName = p["chinese-name"] || user.name;
-            let department = "";
-
-            const academy = p["academy-records"];
-            if (Array.isArray(academy) && academy.length > 0) {
-              department = academy[0].name || academy[0].unit || academy[0].studyName || "";
-            } else if (academy && typeof academy === "object") {
-              department = (academy as any).name || (academy as any).unit || "";
-            }
-
-            // 同步或創建 UserProfile，自動記錄中央大學學籍與科系
-            await prisma.userProfile.upsert({
-              where: { userId: user.id },
-              update: {
-                university: "國立中央大學",
-                ...(realName ? { realName } : {}),
-                ...(studentId ? { studentId } : {}),
-                ...(department ? { department } : {}),
-              },
-              create: {
-                userId: user.id,
-                university: "國立中央大學",
-                realName: realName || null,
-                studentId: studentId || null,
-                department: department || null,
-              },
+            // 注意：新用戶首次登入時，user.id 可能是 NCUProfile 傳來的 id (例如學號)，需尋找資料庫中真實的使用者 ID
+            const dbUser = await prisma.user.findFirst({
+              where: {
+                OR: [
+                  { id: user.id },
+                  ...(user.email ? [{ email: user.email }] : [])
+                ]
+              }
             });
-            console.log(`[NCU Portal SSO] 使用者 ${user.id} (${realName}, ${studentId}, ${department}) 登入成功並更新學籍！`);
+
+            if (dbUser) {
+              const p = (profile || {}) as NCUProfile;
+              const studentId = p["student-id"] || p.identifier;
+              const realName = p["chinese-name"] || dbUser.name || user.name;
+              let department = "";
+
+              const academy = p["academy-records"];
+              if (Array.isArray(academy) && academy.length > 0) {
+                department = academy[0].name || academy[0].unit || academy[0].studyName || "";
+              } else if (academy && typeof academy === "object") {
+                department = (academy as any).name || (academy as any).unit || "";
+              }
+
+              // 同步或創建 UserProfile，自動記錄中央大學學籍與科系
+              await prisma.userProfile.upsert({
+                where: { userId: dbUser.id },
+                update: {
+                  university: "國立中央大學",
+                  ...(realName ? { realName } : {}),
+                  ...(studentId ? { studentId } : {}),
+                  ...(department ? { department } : {}),
+                },
+                create: {
+                  userId: dbUser.id,
+                  university: "國立中央大學",
+                  realName: realName || null,
+                  studentId: studentId || null,
+                  department: department || null,
+                },
+              });
+              console.log(`[NCU Portal SSO] 使用者 ${dbUser.id} (${realName}, ${studentId}, ${department}) 登入成功並更新學籍！`);
+            }
           } catch (profileErr) {
             console.error("更新 NCU UserProfile 失敗", profileErr);
           }
@@ -304,8 +363,17 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  events: {
+    async createUser({ user }) {
+      console.log(`[NextAuth Event] 成功創建新使用者: ${user.id} (${user.email})`);
+    },
+    async linkAccount({ user, account }) {
+      console.log(`[NextAuth Event] 成功綁定第三方帳號: 使用者 ${user.id} -> 供應商 ${account.provider}`);
+    },
+  },
   pages: {
     signIn: "/login",
   },
+  debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET,
 };
