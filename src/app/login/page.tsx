@@ -15,20 +15,25 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const errorParam = searchParams.get("error");
+  const detailParam = searchParams.get("detail");
 
   useEffect(() => {
     if (errorParam) {
       if (errorParam === "OAuthAccountNotLinked") {
         setError("此 Email 曾以其他方式註冊。若需綁定中央大學身分，請先登入原本帳號後進行綁定。");
       } else if (errorParam === "OAuthCallback") {
-        setError("中央大學 Portal 授權回傳處理失敗 (OAuthCallback)。請稍候再試或確認 Portal 授權設定。");
+        if (detailParam) {
+          setError(`中央大學 Portal 授權處理失敗: ${detailParam}`);
+        } else {
+          setError("中央大學 Portal 授權回傳處理失敗 (OAuthCallback)。請稍候再試或確認 Portal 授權設定。");
+        }
       } else if (errorParam === "OAuthSignin") {
         setError("中央大學 Portal 登入連線發起失敗 (OAuthSignin)。請確認金鑰設定。");
       } else {
-        setError("第三方登入發生錯誤 (" + errorParam + ")");
+        setError(`第三方登入發生錯誤 (${errorParam})${detailParam ? `: ${detailParam}` : ""}`);
       }
     }
-  }, [errorParam]);
+  }, [errorParam, detailParam]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

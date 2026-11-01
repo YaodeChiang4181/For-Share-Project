@@ -6,6 +6,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import LineProvider from "next-auth/providers/line";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 
+import { setAuthErrorDetail } from "@/lib/auth-error-store";
+
 export interface NCUProfile {
   id?: string | number;
   identifier?: string;
@@ -60,11 +62,10 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
                 ? `${process.env.NEXTAUTH_URL.replace(/\/$/, "")}/api/auth/callback/ncu`
                 : "https://for-shareproject1.vercel.app/api/auth/callback/ncu");
 
+        // 依據 NCU Portal 官方規範：Body 僅帶 grant_type, code, redirect_uri，嚴禁重複帶入 client_id/client_secret
         const body = new URLSearchParams({
           grant_type: "authorization_code",
           code: params.code as string,
-          client_id: provider.clientId as string,
-          client_secret: provider.clientSecret as string,
           redirect_uri: targetCallbackUrl,
         });
 
@@ -89,18 +90,21 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
         try {
           data = JSON.parse(rawText);
         } catch {
+          const errMsg = `NCU Token 端點回應異常 (HTTP ${res.status}): ${rawText.slice(0, 150)}`;
           console.error("[NCU Token Error] 回傳非 JSON 內容:", { status: res.status, rawText });
-          throw new Error(`NCU Token 端點回應異常 (HTTP ${res.status}): ${rawText.slice(0, 150)}`);
+          setAuthErrorDetail(errMsg);
+          throw new Error(errMsg);
         }
 
         // 注意：NCU Portal 發生錯誤（如 Code 無效或回傳網址不符）時可能回傳 HTTP 200 配 {"error":"..."}
         if (!res.ok || data.error || !data.access_token) {
+          const errorMsg = data.error_description || data.error || `HTTP ${res.status}: 無法取得 NCU Access Token`;
           console.error("[NCU Token Error] 兌換 Access Token 失敗:", {
             status: res.status,
             data,
-            callbackUrl: provider.callbackUrl,
+            callbackUrl: targetCallbackUrl,
           });
-          const errorMsg = data.error_description || data.error || "無法取得 NCU Access Token";
+          setAuthErrorDetail(`Portal Token 兌換失敗: ${errorMsg}`);
           throw new Error(errorMsg);
         }
 
@@ -113,6 +117,7 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
       async request({ tokens }) {
         if (!tokens.access_token) {
           console.error("[NCU UserInfo Error] 缺少 access_token");
+          setAuthErrorDetail("NCU UserInfo 要求失敗：缺少 access_token");
           throw new Error("NCU UserInfo 要求失敗：缺少 access_token");
         }
 
@@ -125,21 +130,27 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
 
         const rawText = await res.text();
         if (!rawText || rawText.trim() === "") {
+          const errMsg = `NCU UserInfo 端點回傳空字串 (HTTP ${res.status})，請確認權限或 Token 有效性`;
           console.error("[NCU UserInfo Error] Portal 回傳空內容 (HTTP " + res.status + ")");
-          throw new Error(`NCU UserInfo 端點回傳空字串 (HTTP ${res.status})，請確認權限或 Token 有效性`);
+          setAuthErrorDetail(errMsg);
+          throw new Error(errMsg);
         }
 
         let data: any = {};
         try {
           data = JSON.parse(rawText);
         } catch {
+          const errMsg = `NCU UserInfo 非有效 JSON: ${rawText.slice(0, 150)}`;
           console.error("[NCU UserInfo Error] 回傳非 JSON 內容:", { status: res.status, rawText });
-          throw new Error(`NCU UserInfo 非有效 JSON: ${rawText.slice(0, 150)}`);
+          setAuthErrorDetail(errMsg);
+          throw new Error(errMsg);
         }
 
         if (!res.ok || data.error) {
+          const errMsg = data.error_description || data.error || `HTTP ${res.status}: NCU UserInfo 請求失敗`;
           console.error("[NCU UserInfo Error] 取得個人資料失敗:", { status: res.status, data });
-          throw new Error(data.error_description || data.error || "NCU UserInfo 請求失敗");
+          setAuthErrorDetail(errMsg);
+          throw new Error(errMsg);
         }
 
         console.log("[NCU Portal] 成功獲取中大使用者資料:", {
@@ -384,6 +395,6 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: true,
   secret: process.env.NEXTAUTH_SECRET,
 };
