@@ -73,13 +73,11 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
           `${validClientId}:${validClientSecret}`
         ).toString("base64");
 
-        // 確保在 Vercel 生產環境下，回傳網址 100% 鎖定為與 Portal 後台完全相符的正式網址
+        // 確保在 Vercel 生產環境下，回傳網址 100% 鎖定為與 Portal 後台完全相符的正式網址（強制 HTTPS）
         const targetCallbackUrl =
-          (provider.callbackUrl && !provider.callbackUrl.includes("localhost"))
+          (provider.callbackUrl && !provider.callbackUrl.includes("localhost") && provider.callbackUrl.startsWith("https://"))
             ? provider.callbackUrl
-            : (process.env.NEXTAUTH_URL
-                ? `${process.env.NEXTAUTH_URL.replace(/\/$/, "")}/api/auth/callback/ncu`
-                : "https://for-shareproject1.vercel.app/api/auth/callback/ncu");
+            : "https://for-shareproject1.vercel.app/api/auth/callback/ncu";
 
         // 依據 NCU Portal 官方規範：Body 僅帶 grant_type, code, redirect_uri，嚴禁重複帶入 client_id/client_secret
         const body = new URLSearchParams({
@@ -92,6 +90,7 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
           callbackUrl: targetCallbackUrl,
           hasCode: Boolean(params.code),
           clientId: validClientId,
+          secretLength: validClientSecret.length,
         });
 
         const res = await fetch("https://portal.ncu.edu.tw/oauth2/token", {
@@ -122,9 +121,11 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
             status: res.status,
             data,
             callbackUrl: targetCallbackUrl,
+            secretLength: validClientSecret.length,
           });
-          setAuthErrorDetail(`Portal Token 兌換拒絕: ${errorMsg}`);
-          throw new Error(errorMsg);
+          const detailedErrMsg = `Portal Token 拒絕 (${errorMsg})。當前 Secret 長度: ${validClientSecret.length} 碼`;
+          setAuthErrorDetail(detailedErrMsg);
+          throw new Error(detailedErrMsg);
         }
 
         console.log("[NCU Portal] Access Token 取得成功！");
