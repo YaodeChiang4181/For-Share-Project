@@ -40,7 +40,7 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
     authorization: {
       url: "https://portal.ncu.edu.tw/oauth2/authorization",
       params: {
-        scope: "identifier chinese-name student-id academy-records email",
+        scope: process.env.NCU_SCOPES || "identifier chinese-name",
       },
     },
     checks: ["state"],
