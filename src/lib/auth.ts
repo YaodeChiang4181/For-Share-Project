@@ -26,10 +26,11 @@ export interface NCUProfile {
 }
 
 export function NcuProvider(options?: { clientId?: string; clientSecret?: string }): OAuthConfig<NCUProfile> {
-  const envClientId = process.env.NCU_CLIENT_ID?.trim();
-  const envClientSecret = process.env.NCU_CLIENT_SECRET?.trim();
-  const optClientId = options?.clientId?.trim();
-  const optClientSecret = options?.clientSecret?.trim();
+  const sanitize = (s?: string) => s?.trim().replace(/^["']|["']$/g, "");
+  const envClientId = sanitize(process.env.NCU_CLIENT_ID);
+  const envClientSecret = sanitize(process.env.NCU_CLIENT_SECRET);
+  const optClientId = sanitize(options?.clientId);
+  const optClientSecret = sanitize(options?.clientSecret);
 
   const clientId = optClientId || envClientId || "20261031220404GEWxNKrY6hCl";
   const clientSecret = optClientSecret || envClientSecret || "zbYbxjLdq1ifm0PQsq8Q5JJuGy5k1mXm4xNmGF9SDFDvqvF";
@@ -49,9 +50,27 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
     token: {
       url: "https://portal.ncu.edu.tw/oauth2/token",
       async request({ params, provider }) {
+        // 檢查 Portal 回傳時是否帶有錯誤參數（例如使用者在 Portal 拒絕授權或 Portal 發生異常）
+        if (params.error) {
+          const errMsg = `Portal 授權被拒絕或失敗 (${params.error}: ${params.error_description || "使用者未確認授權或授權過期"})`;
+          console.error("[NCU Callback Error]", params);
+          setAuthErrorDetail(errMsg);
+          throw new Error(errMsg);
+        }
+
+        if (!params.code) {
+          const errMsg = `Portal 回傳缺少授權碼 (code 為空)。回傳內容: ${JSON.stringify(params)}`;
+          console.error("[NCU Callback Error]", errMsg);
+          setAuthErrorDetail(errMsg);
+          throw new Error(errMsg);
+        }
+
+        const validClientId = (provider.clientId as string)?.trim() || clientId;
+        const validClientSecret = (provider.clientSecret as string)?.trim() || clientSecret;
+
         // NCU Portal 規定 Token 請求必須使用 HTTP Basic Authentication 與 Accept: application/json
         const basicAuth = Buffer.from(
-          `${provider.clientId}:${provider.clientSecret}`
+          `${validClientId}:${validClientSecret}`
         ).toString("base64");
 
         // 確保在 Vercel 生產環境下，回傳網址 100% 鎖定為與 Portal 後台完全相符的正式網址
@@ -72,7 +91,7 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
         console.log("[NCU Portal] 發起 Token 兌換:", {
           callbackUrl: targetCallbackUrl,
           hasCode: Boolean(params.code),
-          clientId: provider.clientId,
+          clientId: validClientId,
         });
 
         const res = await fetch("https://portal.ncu.edu.tw/oauth2/token", {
@@ -104,7 +123,7 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
             data,
             callbackUrl: targetCallbackUrl,
           });
-          setAuthErrorDetail(`Portal Token 兌換失敗: ${errorMsg}`);
+          setAuthErrorDetail(`Portal Token 兌換拒絕: ${errorMsg}`);
           throw new Error(errorMsg);
         }
 
@@ -394,6 +413,24 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
+    error: "/login",
+  },
+  logger: {
+    error(code, metadata) {
+      console.error(`[NextAuth Error] ${code}:`, metadata);
+      const rawErr = (metadata as any)?.error || metadata;
+      const innerErr = rawErr?.cause || rawErr?.error || rawErr;
+      const msg = innerErr?.message || (typeof innerErr === "string" ? innerErr : "");
+      if (msg && !msg.includes("OAuthCallbackError")) {
+        setAuthErrorDetail(msg);
+      }
+    },
+    warn(code) {
+      console.warn(`[NextAuth Warn] ${code}`);
+    },
+    debug(code, metadata) {
+      console.log(`[NextAuth Debug] ${code}`, metadata);
+    },
   },
   debug: true,
   secret: process.env.NEXTAUTH_SECRET,

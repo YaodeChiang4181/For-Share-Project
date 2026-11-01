@@ -18,19 +18,34 @@ function LoginForm() {
   const detailParam = searchParams.get("detail");
 
   useEffect(() => {
+    // 優先從 URL 讀取 detail，若無則從 Cookie 讀取（支援跨多層 redirect）
+    let cookieDetail = "";
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(/ncu_auth_error=([^;]+)/);
+      if (match) {
+        try {
+          cookieDetail = decodeURIComponent(match[1]);
+          document.cookie = "ncu_auth_error=; Path=/; Max-Age=0";
+        } catch {
+          cookieDetail = match[1];
+        }
+      }
+    }
+    const finalDetail = detailParam || cookieDetail;
+
     if (errorParam) {
       if (errorParam === "OAuthAccountNotLinked") {
         setError("此 Email 曾以其他方式註冊。若需綁定中央大學身分，請先登入原本帳號後進行綁定。");
       } else if (errorParam === "OAuthCallback") {
-        if (detailParam) {
-          setError(`中央大學 Portal 授權處理失敗: ${detailParam}`);
+        if (finalDetail) {
+          setError(`中央大學 Portal 授權處理失敗: ${finalDetail}`);
         } else {
           setError("中央大學 Portal 授權回傳處理失敗 (OAuthCallback)。請稍候再試或確認 Portal 授權設定。");
         }
       } else if (errorParam === "OAuthSignin") {
-        setError("中央大學 Portal 登入連線發起失敗 (OAuthSignin)。請確認金鑰設定。");
+        setError(`中央大學 Portal 登入連線發起失敗 (OAuthSignin)${finalDetail ? `: ${finalDetail}` : ""}`);
       } else {
-        setError(`第三方登入發生錯誤 (${errorParam})${detailParam ? `: ${detailParam}` : ""}`);
+        setError(`第三方登入發生錯誤 (${errorParam})${finalDetail ? `: ${finalDetail}` : ""}`);
       }
     }
   }, [errorParam, detailParam]);
