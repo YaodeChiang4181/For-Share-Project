@@ -206,6 +206,30 @@ const baseAdapter = PrismaAdapter(prisma);
 
 const authAdapter: any = {
   ...baseAdapter,
+  async createUser(user: any) {
+    const createdUser = await prisma.user.create({
+      data: {
+        ...user,
+        points: 10, // 新用戶基本註冊獎勵 10 點
+      },
+    });
+
+    try {
+      await prisma.transactionRecord.create({
+        data: {
+          userId: createdUser.id,
+          type: "EARN_REGISTER",
+          amount: 10,
+          description: "新用戶註冊獎勵",
+        },
+      });
+      console.log(`[NextAuth Adapter] 新使用者建立成功並已發放 10 點註冊獎勵: ${createdUser.id} (${createdUser.email})`);
+    } catch (txErr) {
+      console.error("[NextAuth Adapter] 建立新用戶註冊獎勵紀錄失敗:", txErr);
+    }
+
+    return createdUser;
+  },
   async linkAccount(account: any) {
     // 解決 Prisma 不接受 expires_in 與其他自訂屬性導致 Invalid prisma.account.create() 報錯問題
     const {
@@ -323,12 +347,58 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
+      // 尋找真實的資料庫使用者 (因新用戶初次登入時 user.id 可能是 OAuth profile id)
+      let dbUser = null;
+      if (user?.id) {
+        try {
+          dbUser = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { id: user.id },
+                ...(user.email ? [{ email: user.email }] : [])
+              ]
+            }
+          });
+        } catch (findErr) {
+          console.error("尋找登入使用者失敗", findErr);
+        }
+      }
+
+      // 確保透過第三方快速登入自動註冊的用戶皆享有 10 點新人註冊獎勵
+      if (dbUser) {
+        try {
+          const hasReward = await prisma.transactionRecord.findFirst({
+            where: {
+              userId: dbUser.id,
+              type: "EARN_REGISTER",
+            },
+          });
+
+          if (!hasReward) {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { points: { increment: 10 } },
+            });
+            await prisma.transactionRecord.create({
+              data: {
+                userId: dbUser.id,
+                type: "EARN_REGISTER",
+                amount: 10,
+                description: "新用戶註冊獎勵",
+              },
+            });
+            console.log(`[Auth] 已為使用者 ${dbUser.id} 自動補發新用戶註冊獎勵 10 點！`);
+          }
+        } catch (rewardErr) {
+          console.error("發放註冊獎勵檢查失敗", rewardErr);
+        }
+      }
+
       if (account?.provider === "line") {
-        // 更新 user 中的 lineId
-        if (user?.id) {
+        if (dbUser) {
           try {
             await prisma.user.update({
-              where: { id: user.id },
+              where: { id: dbUser.id },
               data: { lineId: account.providerAccountId },
             });
           } catch (err) {
@@ -336,50 +406,38 @@ export const authOptions: NextAuthOptions = {
           }
         }
       } else if (account?.provider === "ncu") {
-        if (user?.id) {
+        if (dbUser) {
           try {
-            // 注意：新用戶首次登入時，user.id 可能是 NCUProfile 傳來的 id (例如學號)，需尋找資料庫中真實的使用者 ID
-            const dbUser = await prisma.user.findFirst({
-              where: {
-                OR: [
-                  { id: user.id },
-                  ...(user.email ? [{ email: user.email }] : [])
-                ]
-              }
-            });
+            const p = (profile || {}) as NCUProfile;
+            const studentId = p["student-id"] || p.identifier;
+            const realName = p["chinese-name"] || dbUser.name || user.name;
+            let department = "";
 
-            if (dbUser) {
-              const p = (profile || {}) as NCUProfile;
-              const studentId = p["student-id"] || p.identifier;
-              const realName = p["chinese-name"] || dbUser.name || user.name;
-              let department = "";
-
-              const academy = p["academy-records"];
-              if (Array.isArray(academy) && academy.length > 0) {
-                department = academy[0].name || academy[0].unit || academy[0].studyName || "";
-              } else if (academy && typeof academy === "object") {
-                department = (academy as any).name || (academy as any).unit || "";
-              }
-
-              // 同步或創建 UserProfile，自動記錄中央大學學籍與科系
-              await prisma.userProfile.upsert({
-                where: { userId: dbUser.id },
-                update: {
-                  university: "國立中央大學",
-                  ...(realName ? { realName } : {}),
-                  ...(studentId ? { studentId } : {}),
-                  ...(department ? { department } : {}),
-                },
-                create: {
-                  userId: dbUser.id,
-                  university: "國立中央大學",
-                  realName: realName || null,
-                  studentId: studentId || null,
-                  department: department || null,
-                },
-              });
-              console.log(`[NCU Portal SSO] 使用者 ${dbUser.id} (${realName}, ${studentId}, ${department}) 登入成功並更新學籍！`);
+            const academy = p["academy-records"];
+            if (Array.isArray(academy) && academy.length > 0) {
+              department = academy[0].name || academy[0].unit || academy[0].studyName || "";
+            } else if (academy && typeof academy === "object") {
+              department = (academy as any).name || (academy as any).unit || "";
             }
+
+            // 同步或創建 UserProfile，自動記錄中央大學學籍與科系
+            await prisma.userProfile.upsert({
+              where: { userId: dbUser.id },
+              update: {
+                university: "國立中央大學",
+                ...(realName ? { realName } : {}),
+                ...(studentId ? { studentId } : {}),
+                ...(department ? { department } : {}),
+              },
+              create: {
+                userId: dbUser.id,
+                university: "國立中央大學",
+                realName: realName || null,
+                studentId: studentId || null,
+                department: department || null,
+              },
+            });
+            console.log(`[NCU Portal SSO] 使用者 ${dbUser.id} (${realName}, ${studentId}, ${department}) 登入成功並更新學籍！`);
           } catch (profileErr) {
             console.error("更新 NCU UserProfile 失敗", profileErr);
           }
@@ -392,6 +450,25 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as any).role || "FREE";
         token.points = (user as any).points || 0;
+
+        try {
+          const dbUser = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { id: user.id },
+                ...(user.email ? [{ email: user.email }] : [])
+              ]
+            },
+            select: { id: true, role: true, points: true }
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.role = dbUser.role || "FREE";
+            token.points = dbUser.points ?? 0;
+          }
+        } catch {
+          // ignore
+        }
       }
       return token;
     },
