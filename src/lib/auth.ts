@@ -43,7 +43,7 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
         scope: process.env.NCU_SCOPES || "identifier chinese-name email",
       },
     },
-    checks: ["state"],
+    checks: ["none"],
     token: {
       url: "https://portal.ncu.edu.tw/oauth2/token",
       async request({ params, provider }) {
@@ -52,14 +52,24 @@ export function NcuProvider(options?: { clientId?: string; clientSecret?: string
           `${provider.clientId}:${provider.clientSecret}`
         ).toString("base64");
 
+        // 確保在 Vercel 生產環境下，回傳網址 100% 鎖定為與 Portal 後台完全相符的正式網址
+        const targetCallbackUrl =
+          (provider.callbackUrl && !provider.callbackUrl.includes("localhost"))
+            ? provider.callbackUrl
+            : (process.env.NEXTAUTH_URL
+                ? `${process.env.NEXTAUTH_URL.replace(/\/$/, "")}/api/auth/callback/ncu`
+                : "https://for-shareproject1.vercel.app/api/auth/callback/ncu");
+
         const body = new URLSearchParams({
           grant_type: "authorization_code",
           code: params.code as string,
-          redirect_uri: provider.callbackUrl,
+          client_id: provider.clientId as string,
+          client_secret: provider.clientSecret as string,
+          redirect_uri: targetCallbackUrl,
         });
 
         console.log("[NCU Portal] 發起 Token 兌換:", {
-          callbackUrl: provider.callbackUrl,
+          callbackUrl: targetCallbackUrl,
           hasCode: Boolean(params.code),
           clientId: provider.clientId,
         });

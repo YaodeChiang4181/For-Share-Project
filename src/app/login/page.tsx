@@ -21,9 +21,9 @@ function LoginForm() {
       if (errorParam === "OAuthAccountNotLinked") {
         setError("此 Email 曾以其他方式註冊。若需綁定中央大學身分，請先登入原本帳號後進行綁定。");
       } else if (errorParam === "OAuthCallback") {
-        setError("Portal 授權回傳處理失敗 (OAuthCallback)。請確認使用 http://localhost:3000 開發，並確認中央大學 Portal 後台「回傳網址」設定完全相符。");
+        setError("中央大學 Portal 授權回傳處理失敗 (OAuthCallback)。請稍候再試或確認 Portal 授權設定。");
       } else if (errorParam === "OAuthSignin") {
-        setError("Portal 登入連線發起失敗 (OAuthSignin)。請確認已重啟開發伺服器載入金鑰，或請確認 Portal 回傳網址設定完全相符。");
+        setError("中央大學 Portal 登入連線發起失敗 (OAuthSignin)。請確認金鑰設定。");
       } else {
         setError("第三方登入發生錯誤 (" + errorParam + ")");
       }
